@@ -1,6 +1,6 @@
 # STATE_MANIFEST.md — what the current files actually are
 
-**Generated 2026-08-10 by `tools/manifest.py`. Do not hand-edit.**
+**Generated 2026-08-10 15:30 by `tools/manifest.py`. Do not hand-edit.**
 
 Read this BEFORE rewriting any file below. If the copy you are holding
 does not hash to the value here, your copy is stale — hand over a patch,
@@ -14,15 +14,15 @@ everything added since that base, and does it silently.
 | `REBA_PROGRAM.md` | `cf63d8f0fbf0aa62` | 1204 | 95223 | program state — decision log is authoritative |
 | `SESSIONS.md` | `b431d120423d013c` | 469 | 21420 | the session stream — append/splice only, newest at top |
 | `APP_STATE.md` | `608e89a3c0fa378f` | 543 | 37480 | app and schema rulings |
-| `tracks.yaml` | `e509aa556e2bdf81` | 986 | 52306 | all card copy — the only place card text lives |
-| `CARD_STYLE.md` | `5302fd850df96be5` | 147 | 6841 | card design law |
-| `history_seed.yaml` | `754aefb581fe1c0b` | 181 | 9275 | pre-app sessions, assertions, stand-downs |
-| `tools/state.py` | `34f3a79437aafc7f` | 556 | 26736 | the state engine |
+| `tracks.yaml` | `cfe6a263f16f8860` | 1272 | 68614 | all card copy — the only place card text lives |
+| `CARD_STYLE.md` | `66ca151c458aaad2` | 178 | 9088 | card design law |
+| `history_seed.yaml` | `7f1b126ab8f676e2` | 189 | 10023 | pre-app sessions, assertions, stand-downs |
+| `tools/state.py` | `467c57d5f0f0f4b7` | 630 | 31397 | the state engine |
 | `tools/render_cards.py` | `1daf4e0cb4b603c1` | 621 | 24318 | card renderer |
-| `tools/audit_tracks.py` | `5040bb693b5f2007` | 90 | 2890 | deck audit |
-| `tools/build_app.py` | `b9363b944d249321` | 171 | 7594 | app builder |
-| `index.html` | `8386024c38d7d05a` | 885 | 125578 | the app |
-| `sw.js` | `af141aa024afab49` | 55 | 2948 | service worker — static cache key by ruling |
+| `tools/audit_tracks.py` | `4320deba4aa9d20d` | 108 | 3769 | deck audit |
+| `tools/build_app.py` | `273f7429717c1bd1` | 218 | 10266 | app builder |
+| `index.html` | `88ab96065aef0938` | 978 | 160182 | the app |
+| `sw.js` | `045924381ad38015` | 62 | 3419 | service worker — static cache key by ruling |
 
 ## Full digests
 
@@ -30,13 +30,13 @@ everything added since that base, and does it silently.
 cf63d8f0fbf0aa6256434df9410302afd0ff82039eb7396de4c79435b6dae917  REBA_PROGRAM.md
 b431d120423d013cda4ffbb1c73f54ea4171fa087a2d6447dd579361606491bd  SESSIONS.md
 608e89a3c0fa378f0aeec71ead9fe9c3f27870a838757643e3a2b2568d82d7da  APP_STATE.md
-e509aa556e2bdf8138f26cb0f3733f327e47180f4afece3d8dcdde9809d8c59c  tracks.yaml
-5302fd850df96be57e7b44a553d87f50a7294893277ecd6583a1faf9d8a2fbfa  CARD_STYLE.md
-754aefb581fe1c0be27c945030eb8218555fbb6a3d601bc3edc2f2d790bb7b07  history_seed.yaml
-34f3a79437aafc7fcad83c07567d6ff1324fc18be4773f80f0293cb5d1a56e50  tools/state.py
+cfe6a263f16f8860f44a46186ea08fa02b4512d38287e5d7450b35ef20a02abe  tracks.yaml
+66ca151c458aaad2e47ffa45717db507eae7521f50e8400096da430229827e44  CARD_STYLE.md
+7f1b126ab8f676e23d94005369d42d9a4c08d8bd63e0c9da4b38894d2f86ba0b  history_seed.yaml
+467c57d5f0f0f4b771422cbb2ac18ae87af318c782f0836fc420c81bcb0ca3e8  tools/state.py
 1daf4e0cb4b603c1573911c09049a8ebf00806315f3641fb747541dcfb321795  tools/render_cards.py
-5040bb693b5f20071bc74eb23a53b6d258d8b1efc9a183a6f674f3e4ba762fdb  tools/audit_tracks.py
-b9363b944d249321256687a6d28fc0d0c6bd3b8350f4d55a6d04b025e360d05d  tools/build_app.py
-8386024c38d7d05a61ae7a95850c4430f506fa03c2f11cfc82d37d947a468100  index.html
-af141aa024afab49bfd7aef0218a1507ab0804a5e12735599d03f13810354439  sw.js
+4320deba4aa9d20d005d7f6d035c022f4fefb01f8d5a033926f6c91ae65bfcf5  tools/audit_tracks.py
+273f7429717c1bd1abac2c2ca759c88621f0ccb1875076f9b42e26674f7718be  tools/build_app.py
+88ab96065aef093855de8ebdcc0279cd80806814145f7ada7b8770247681f619  index.html
+045924381ad380152f9371ba0290ab16a4057be30e9f8006644363c4647dac02  sw.js
 ```

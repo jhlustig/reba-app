@@ -20,7 +20,11 @@ House style for every training card. Any new stack inherits this without renegot
 | Rust | `#8C3B2A` | Whistle stripe + accents |
 | Tan | `#9A7C42` | Lines stripe + accents |
 | Slate | `#3F5A6B` | Water stripe + accents |
-| Clay | `#7A5240` | Reserved — next track |
+| Clay | `#7A5240` | **Hunt** stripe + accents — reservation spent 2026-08-10 |
+| Olive | `#6B6A2F` | Puppy stripe + accents |
+| Teal | `#2C5B57` | Obedience stripe + accents |
+| Indigo | `#3B426E` | Place stripe + accents |
+| Plum | `#6A3B58` | Force stripe + accents |
 | Alert | `#A32E1E` | Gate cards only — top/bottom bars, header rule |
 | Gray | `#F3F2EE` | Troubleshooting table fill |
 | Line | `#C6C2B6` | Hairlines |
@@ -28,6 +32,24 @@ House style for every training card. Any new stack inherits this without renegot
 | Muted | `#6B6F64` | Footer |
 
 Track identity is carried by the **edge stripe colour only**. Everything else stays constant across tracks.
+
+**The palette is now closed — nine tracks, nine colours, no reservations left.** Clay was
+the last reserved colour and Hunt took it on 2026-08-10; the four added in the same pass
+finish the set, so the next person to write Puppy, Obedience, Place or Force is not blocked
+on a colour ruling the way Hunt was.
+
+How the four were chosen, so a tenth is not picked by eye:
+
+- **Contrast with white ≥ 5.6:1.** The two-letter tag is reversed out in white on the
+  stripe. The deck's own floor is Tan at 3.94:1 and every new colour clears it comfortably.
+- **Pairwise CIELAB ΔE ≥ 15 across all ten**, which is what the built four already managed
+  among themselves (17.2). Two stripes a handler cannot tell apart at arm's length in a
+  truck at first light are one stripe.
+- **Nothing near Alert `#A32E1E`.** A red-ish track stripe reads as a gate card, which is
+  the one colour meaning in this deck that must never be ambiguous. Force is the pressure
+  track and the obvious wrong answer was to make it red; it is Plum for exactly that reason.
+- **Nothing near Muted `#6B6F64`**, the footer grey. A neutral grey stripe reads as a
+  colour that failed to print. This ruled out the otherwise-best candidate.
 
 ## Card anatomy
 
@@ -139,7 +161,16 @@ finishes reading at first light fails the same way on glass as on paper.
 
 ## Rules for new stacks
 
-- Seven stages, one track title card, three reference cards. 11 cards per track.
+- **Seven stages and one track title card are fixed. References and Gate cards are added as
+  the track needs them.** Amended 2026-08-10; it previously read "three reference cards, 11
+  cards per track," which the built deck has never obeyed — Marks carries five references
+  and runs to 13, Whistle carries three plus a gate and runs to 12, Water solved the same
+  problem the other way by carrying a gate and only two references. Hunt is 12. The
+  eleven was a design intention that got written down as a rule and then quietly outvoted
+  by four tracks in a row; a rule the deck does not follow is worse than no rule, because
+  the next person builds to it and then has to argue their way back out. **What is actually
+  load-bearing is the seven stages** — that is the shape of a track — and the word budget,
+  which caps what any one card can say. The card count was never doing work.
 - Nothing enters a track without a stated **PASS** criterion — no "advance when it feels right".
 - Any dependency on another track is named explicitly on the card, by track and stage number.
 - Anything that could hurt the dog if run early gets a Gate card, not a footnote.

@@ -5,11 +5,18 @@
  * carries no version meaning. Bumping it with every deck change only made every
  * phone re-download its icons. A publish is index.html alone.
  *
- * THAT RULING HAS ONE EXIT, AND THIS IS IT: "unless the worker's own logic
- * changes." The asset list below now carries the card-back diagrams, and a
- * worker whose ASSETS list has grown must re-run install to fetch them — which
- * only happens when the key moves. So the key moves once, here, for the
- * diagrams, and then goes back to standing still.
+ * THAT RULING HAS ONE EXIT, AND THIS IS IT: a PRECACHED ASSET whose CONTENTS
+ * changed. The key carries no version meaning for code, because the worker is
+ * network-first and refetches it. It carries all the meaning in the world for a
+ * precached file, because those are served cache-first and a phone holding the
+ * old copy serves it forever. So the key moves for asset changes and for nothing
+ * else, and then goes back to standing still.
+ *
+ * MOVED 2026-08-09 — the asset list grew to carry the card-back diagrams.
+ * MOVED 2026-08-10 — diagrams/ln-5.svg CHANGED. Its falls are now numbered by
+ *   throw order, which is the whole point of the LN-5 rewrite; a phone serving
+ *   the old picture would show a diagram that contradicts its own card front,
+ *   which is the exact failure this project logged on 08-08.
  *
  * WHY THE DIAGRAMS ARE PRECACHED RATHER THAN LEFT TO LAZY CACHING. The fetch
  * handler below already caches any asset on first use, which would be enough if
@@ -18,7 +25,7 @@
  * a diagram that is missing the first time it is wanted. 900 KB once, on wifi,
  * buys the whole set offline.
  */
-const CACHE = 'reba-08-09·91f-dgm';
+const CACHE = 'reba-08-10·2c8-ln5';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './icon-180.png',

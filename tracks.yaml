@@ -19,7 +19,7 @@
 meta:
   deck_title: "Reba Field Card Deck"
   dog: "Reba"
-  version: 2026-08-09
+  version: 2026-08-10
   schema: 2
   numbering: global
   labels: name          # letter | name  — flips the whole deck
@@ -32,6 +32,10 @@ style:
     tan:   "9A7C42"
     slate: "3F5A6B"
     clay:  "7A5240"
+    olive: "6B6A2F"
+    teal:  "2C5B57"
+    indigo: "3B426E"
+    plum:  "6A3B58"
     alert: "A32E1E"
     gray:  "F3F2EE"
     line:  "C6C2B6"
@@ -658,14 +662,16 @@ tracks:
         requires: [lining.s4]
         title: "Honest Dog (Seen Diversion)"
         drill: |
-          Two dummies down, both seen. Send her for the far one. You walk out and pick
-          the near one yourself. Vary which one she gets so it never becomes a pattern.
-          This is the honor picture, trained without a blind.
+          Two dummies down, both seen. THROW ORDER NEVER VARIES: far one first, near
+          one second, so the picture is the same every rep. Send her for the far one
+          and walk out for the near one yourself. One send in four goes to the near one
+          instead, logged as a no-count — that is what stops the far bird becoming the
+          pattern. The honor picture, trained without a blind.
         pass: |
           Takes the sent line past a visible diversion 4 of 5, and sits quiet while you
-          collect the other.
+          collect the other. Near-bird sends are logged and never count.
         checks:
-          - {id: c1, label: "Takes the sent line past a visible diversion", hits: 4, of: 5}
+          - {id: c1, label: "Takes the sent line past a visible diversion (far-bird sends only)", hits: 4, of: 5}
         ifthen:
           - ["Takes the diversion", "Widen the angle between the two and shorten the sent one until she wins, then rebuild."]
           - ["Whines while you pick up", "Ignore it, finish, and release her on a different rep. Never send her for the one she whined at."]
@@ -983,3 +989,283 @@ tracks:
 
           Heat: Louisiana water is warm and will not cool her. Watch for overheating in the
           lake, not just on the bank. Ears: dry them after every session.
+
+  # ────────────────────────────────────────────────────────────── TRACK E ──
+  # BUILT 2026-08-10 from HU_WIREFRAME.md, after Jason's rulings on all seven of
+  # its open questions. Every PASS below is PROVISIONAL — proposed by me, signed
+  # by him stage by stage as he reads them (his 08-10 ruling: "sign per stage",
+  # which is what kept the last batch of 18 honest).
+  #
+  # TWO STAGES ARE WRITTEN AGAINST GATES SHE CANNOT CURRENTLY REACH — HU-3 needs
+  # MK-4, which is locked behind MK-3, which is STOOD DOWN; HU-5 needs MK-7 and a
+  # second dog. Both carry blocked_note saying so. Recorded here because copy
+  # written against an unreachable gate is copy nobody has run, and this project
+  # has been bitten by rewriting such copy later from a stale base.
+  - id: hunt
+    short: Hunt
+    tag: HU
+    letter: E
+    name: "Blind & Hunt Day"
+    color: clay
+    cards:
+
+      - id: hunt.title
+        type: title
+        title: "Blind & Hunt Day"
+        body: |
+          The track the other four are for. Most of it is environmental — a box, a
+          spread, a boat, bad light — not new skill, so it runs alongside anything.
+          Where test polish and hunting utility diverge, hunting wins, and this is
+          the track where that matters most.
+
+          Two things here are not conditioning and will hurt her if run early: a gun
+          fired inside a box she cannot leave, and a send made while a gun is still
+          up. Both have their own cards. Read them first.
+
+          Sources: the program's own rulings and Jason's Yang Ming and Caddo
+          experience. Drafted with AI assistance; every number is Jason's.
+
+      - id: hunt.s1
+        type: stage
+        n: 1
+        requires: []
+        title: "Blind and Layout Manners"
+        equipment: [invisilab, unloaded_gun, blind_bag, duck_call]
+        drill: |
+          Bare InvisiLab first — the mock blind is not built and does not gate this,
+          ruled 08-10. Kennel her onto the stand, then be a hunter around her: sit,
+          stand, shoulder an unloaded gun, move the bag, work the call. She does not
+          move. NEVER run a correction on the stand — she loads voluntarily at meal
+          prep and that is bought once.
+        pass: |
+          Settles inside 30 sec and holds 10 min — no whine, no exit, no second
+          command — 3 sessions. Then 5/5 holds through you standing and shouldering
+          an unloaded gun.
+        checks:
+          - {id: c1, label: "Settles inside 30 sec, holds 10 min, one command", hits: 1, of: 1, sessions: 3}
+          - {id: c2, label: "Holds through the handler standing and shouldering an unloaded gun", hits: 5, of: 5}
+        ifthen:
+          - ["Breaks the stand to follow you", "Shorten to 2 min and rebuild. Walk back and re-place her — never call her off and never correct her on it."]
+          - ["Whines but stays", "Duration ran ahead of her. Halve it, pay the quiet, build again. A whining dog in a blind is a dog nobody invites twice."]
+          - ["Winds up when you work the call", "The call has become a bird cue. See The Duck Call Is a Stillness Cue before another rep."]
+
+      - id: hunt.s2
+        type: stage
+        n: 2
+        requires: []
+        title: "Decoys — Through and Around"
+        equipment: [decoys, bumpers]
+        drill: |
+          LAND is a check, not a build — she has run marks through decoys and
+          habituated inside one session. Bumper past a 6-decoy spread at 20 yds; she
+          goes THROUGH out and back. WATER is the real build and is gated behind
+          {ref:water.s1} and {ref:water.s2}: a decoy floats at her eye level, rides
+          the chop, sits on a line she can foul, and she cannot step around it.
+        pass: |
+          Land 5/5 through a 6-decoy spread at 20 yds, no mouthing, no investigating,
+          1 session. Water 5/5 through a 12-decoy spread, no mouthing, no diverting,
+          no fouled line, 2 sessions. A head turn is a pass; a changed line is not.
+        checks:
+          - {id: c1, label: "LAND — 5/5 through a 6-decoy spread at 20 yds", hits: 5, of: 5}
+          - {id: c2, label: "WATER — 5/5 through a 12-decoy spread, nothing fouled", hits: 5, of: 5, sessions: 2,
+             requires: [water.s1, water.s2]}
+        ifthen:
+          - ["Picks a decoy up", "Stop the rep, take it, no correction. Shorten so the bumper is the obvious answer, then rebuild the spread."]
+          - ["Swims around the spread, not through", "That is bank running in a different coat. See Bank Running — Kill It Early."]
+          - ["Refuses to enter through decoys", "Open a lane, send through it, close the lane over sessions. Never push her into a spread."]
+
+      - id: hunt.s3
+        type: stage
+        n: 3
+        requires: [steadiness.s4, hunt.s1]
+        title: "Gunfire from the Blind"
+        equipment: [invisilab, poppers_12ga, bumpers]
+        blocked_note: "UNREACHABLE AS WRITTEN — needs MK-4, locked behind MK-3, stood down 2026-08-09. Read the Gate card before the first rep."
+        session_cap: {reps: 6, applies_to: "shots fired from inside", note: "Six shots from inside the stand a session, maximum."}
+        drill: |
+          Read {ref:hunt.gate} first. The gun starts OUTSIDE the stand at distance and
+          walks in over sessions — never the first gun of a day fired from inside.
+          Shot, then a mark. She is steady on the shot on open ground before any of
+          this: that is {ref:steadiness.s4} and it is the gate, not a suggestion.
+        pass: |
+          8/10 steady in the stand through a shot fired from inside, followed by a
+          mark, 2 sessions.
+        checks:
+          - {id: c1, label: "Steady in the stand, shot from inside, then a mark", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Flinches or checks out at the report", "STOP. Gun back outside and out to distance, happy retrieves only, rebuild over weeks. Do not push through."]
+          - ["Breaks off the stand on the shot", "Steadiness, not noise. Back to {ref:steadiness.s4} on open ground; the box makes a break worse, not better."]
+          - ["Fine outside, tense inside", "The box is the variable. Same shot, stand door open, then closed. One axis."]
+
+      - id: hunt.s4
+        type: stage
+        n: 4
+        requires: [hunt.s1]
+        title: "Boat and Stand Work"
+        equipment: [boat, invisilab, lead]
+        drill: |
+          Tied off at the bank, engine off, before anything moves. Load on command,
+          sit, unload on command — the gunwale is a height problem, the same one the
+          dock is in {ref:water.s2}. Then hold position while YOU rock the boat from
+          inside. Never lift her in and never push her out.
+        pass: |
+          5/5 load and unload on command from a stationary boat. Holds position 10 min
+          with the boat rocking, 2 sessions.
+        checks:
+          - {id: c1, label: "Loads and unloads on command, boat stationary", hits: 5, of: 5}
+          - {id: c2, label: "Holds position 10 min with the boat rocking", hits: 1, of: 1, sessions: 2}
+        ifthen:
+          - ["Will not load", "Height, not water. Lower the step: bank first, then a stable gunwale. Let her choose to go."]
+          - ["Scrambles when it rocks", "Footing. Mat the deck and rock it less. Rebuild the amplitude, not her tolerance for slipping."]
+          - ["Jumps out on the mark", "Steadiness in a new picture. Lead on, back to a 1-sec delay, rebuild in the boat."]
+
+      - id: hunt.s5
+        type: stage
+        n: 5
+        requires: [steadiness.s7]
+        title: "Honoring and Multiple Dogs"
+        equipment: [lead, invisilab]
+        blocked_note: "DECLARED EXCEPTION TO SOLO-FIRST — this stage needs a SECOND DOG and a helper. Not a fallback; there is no solo version. Run it at a North Louisiana HRC club day. Also needs MK-7, which is far."
+        drill: |
+          Another dog is sent; she holds. On lead for the first sessions — the lead is
+          the drill, not a crutch, and it is what makes the break impossible while the
+          rule is being learned. Her turn comes second at first, so holding pays.
+        pass: |
+          Honors another dog's retrieve 5/5 — no break, no vocalising, no creeping off
+          the stand — 2 sessions.
+        checks:
+          - {id: c1, label: "Honors another dog's retrieve, no break, no vocalising", hits: 5, of: 5, sessions: 2}
+        ifthen:
+          - ["Breaks when the other dog is sent", "Lead under your foot and shorten the other dog's retrieve. Prevent it; do not correct it."]
+          - ["Vocalises while honoring", "She is held past what she can hold. Send her first for a few reps, then alternate."]
+          - ["Fine on lead, breaks off it", "She was holding the lead. Same wean as {ref:steadiness.s4} — tab on, stay close."]
+
+      - id: hunt.s6
+        type: stage
+        n: 6
+        requires: [hunt.s1, hunt.s2]
+        title: "Low Light, Real Cover, Cold"
+        equipment: [invisilab, mock_blind, decoys, bumpers]
+        drill: |
+          Not a new skill — a re-validation, which is exactly why it gets skipped. Take
+          numbers she has already banked and re-meet them in the conditions a hunt
+          happens in: legal shooting light, 30 min before sunrise, and standing cover.
+          THE MOCK BLIND GOES UP HERE, per the 08-10 ruling — HU-1 ran off the bare
+          stand and the blind is the new variable, added alone.
+        pass: |
+          Re-meet {ref:hunt.s1}'s 10 min hold and {ref:hunt.s2}'s land 5/5, at shooting
+          light and in standing cover, 2 sessions each.
+        checks:
+          - {id: c1, label: "HU-1's 10 min hold re-met at shooting light, in the blind", hits: 1, of: 1, sessions: 2}
+          - {id: c2, label: "HU-2's land 5/5 re-met in standing cover, low light", hits: 5, of: 5, sessions: 2}
+        ifthen:
+          - ["Numbers drop in the dark", "Expected, and it is the point. Drop the distance, not the standard, and rebuild in the low light."]
+          - ["Settles on the bare stand, not in the blind", "The blind is the variable. Sides down one at a time, roof last."]
+          - ["Hunts short in standing cover", "Cover eats a mark. Shorten until she wins, then stretch — this is {ref:steadiness.s5}'s rule, borrowed."]
+
+      - id: hunt.s7
+        type: stage
+        n: 7
+        requires: [hunt.s1, hunt.s2, hunt.s3, hunt.s4, hunt.s5, hunt.s6, steadiness.s4, water.s3]
+        title: "Simulated Hunts — The Whole Picture"
+        drill: |
+          Everything at once, and nothing new. Blind, spread, calls, a shot, land and
+          water falls, retrieve order, guns down before any send. Run it like a hunt,
+          not like a session: no coaching, no re-cast, no second try. What breaks here
+          is a card you go back to, not a thing you fix on the day.
+        pass: |
+          2 consecutive simulated hunts with zero breaks, zero handled retrieves, and
+          correct retrieve order throughout.
+        checks:
+          - {id: c1, label: "Simulated hunt — no break, no handle, correct order", hits: 2, of: 2}
+        ifthen:
+          - ["One thing breaks every time", "Good — that is the card. Go back to it and stop running simulations until it holds."]
+          - ["Everything is loose at once", "Too much at once too soon. Drop back to HU-6 and add one element per session."]
+          - ["Handles well but has stopped enjoying it", "Read Over-Suppression. A finished dog that does not want to go is not finished."]
+
+      - id: hunt.gate
+        type: gate
+        title: "GATE — Gunfire from the Blind"
+        body: |
+          Do not run {ref:hunt.s3} until {ref:steadiness.s4} has banked: off lead,
+          steady through fall, delay and gun, on open ground.
+
+          On open ground she can move away from the report. In a blind she cannot —
+          it is close range, over her head, in a box that reflects the sound back at
+          her. That is a different event, and she meets it with no exit.
+
+          The program has already priced this. {ref:steadiness.s3}'s own IF row reads
+          "Stop. Do not push through. Rebuild over weeks," and the 08-09 dove-field
+          ruling kept her out of a field of fast guns for the same reason. A flinch at
+          the report costs weeks and it is the one fault on this track that gets
+          harder to fix the longer it runs.
+
+          Never the first gun of the day fired from inside the blind.
+
+      - id: hunt.ref_call
+        type: reference
+        trigger: prerequisite
+        title: "The Duck Call Is a Stillness Cue"
+        body: |
+          Read before {ref:hunt.s1}. The beeper is the training cue and the duck call
+          is RESERVED for this track — that ruling is why she has never heard a call
+          mean "a bird is coming for you."
+
+          Protect it. On hunt day you blow a call with her beside you, repeatedly, and
+          most of those calls end in nothing at all. If a call predicts a bird you have
+          built a dog who winds up every time you work a flock, which is every few
+          minutes, for four hours.
+
+          So condition the opposite, from the first session. Call while she is settled
+          on the stand and NOTHING happens. Pay the stillness, not the sound. Work the
+          call through the dead time between reps, never in the second before a throw.
+
+          The test is simple and it is easy to fail without noticing: if her head comes
+          up on the call, the call has become a cue. Stop throwing anywhere near it for
+          a week and re-pay the stillness.
+
+      - id: hunt.ref_order
+        type: reference
+        trigger: prerequisite
+        title: "Retrieve Order and Safety"
+        body: |
+          Read before {ref:hunt.s5} and {ref:hunt.s7}, and before any hunt with other
+          guns. The strongest language in the deck, and it is about the people.
+
+          NOBODY SENDS UNTIL EVERY GUN IS DOWN AND THE SHOOTING IS OVER. In a party
+          of four the send is a social act, not a handler's decision. You send
+          because the shooting stopped and you said so out loud — not because you
+          saw a bird fall.
+
+          SHE WORKS IN FRONT OF A LINE OF GUNS. Her outbound path crosses lanes
+          belonging to people who are not watching her. Know where it runs before
+          she is on it.
+
+          Order: cripples first, farthest cripple before the nearest, dead birds
+          last. A bird still swimming is the only reason to break the order, and it
+          is decided before the send.
+
+          Say the plan out loud before the first flight. A blind is loud and your
+          friends are not reading your mind.
+
+      - id: hunt.ref_test
+        type: reference
+        trigger: browse
+        title: "Hunt Test vs. Hunting"
+        body: |
+          Kept on Jason's ruling 2026-08-10, though the program's own premise already
+          answers it — this deck may end up in other hands, and the person holding it
+          may be training for a ribbon.
+
+          Where the two diverge in THIS program, hunting wins. Concretely: she is
+          trained to a duck blind at Caddo and Yang Ming, not to a test rulebook, and
+          any card that would have to get more formal to score well and less useful in
+          a blind stays useful.
+
+          Where they do NOT diverge, and it is most of the way: steadiness, marking,
+          honoring, a clean delivery to hand, a stop at distance. HRC's picture is a
+          hunting picture, which is why club days are worth going to.
+
+          What a test buys you that a hunt does not: a scored, dated, third-party read
+          on a dog you see every day. What it costs: reps spent on polish that a duck
+          does not check. Spend them knowingly.
