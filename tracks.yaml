@@ -1,0 +1,981 @@
+# tracks.yaml — Reba Field Card System, card content
+#
+# SOURCE OF TRUTH for all card copy. The renderer (render_cards.py) reads this
+# file and knows nothing about content. Edit here, re-render, reprint.
+#
+# Schema
+#   meta.numbering: "global"  -> footer right reads "14 / 33"
+#                   "track"   -> footer right reads "B-03"   (flip when re-lettering)
+#   card.type: title | stage | reference | gate
+#   card.trigger (reference only): failure | prerequisite | browse
+#     failure      -> pushed by the app when a logged failure mode RECURS (3 sessions)
+#     prerequisite -> surfaced BEFORE the stage that needs it; too late after a failure
+#     browse       -> never pushed; available on demand
+#     title/reference/gate  -> body:   prose, blank line between paragraphs
+#     stage                 -> n, drill, pass, ifthen: [[if, then], ...]
+#
+# Style tokens live in style.palette and mirror CARD_STYLE.md exactly.
+
+meta:
+  deck_title: "Reba Field Card Deck"
+  dog: "Reba"
+  version: 2026-08-09
+  schema: 2
+  numbering: global
+  labels: name          # letter | name  — flips the whole deck
+
+style:
+  trim_in: [6.0, 4.0]
+  palette:
+    green: "2F4A32"
+    rust:  "8C3B2A"
+    tan:   "9A7C42"
+    slate: "3F5A6B"
+    clay:  "7A5240"
+    alert: "A32E1E"
+    gray:  "F3F2EE"
+    line:  "C6C2B6"
+    ink:   "232720"
+    muted: "6B6F64"
+  stripe_w_in: 0.20
+  stripe_inset_in: 0.10
+  title_pt: 13.5
+  body_ladder: [10.6, 10.0, 9.4, 8.8, 8.2, 7.6, 7.0, 6.4]
+  fill_max: 0.93
+  warn_below_pt: 8.2   # renderer warns if any card auto-fits smaller than this
+  footer_pt: 6.4
+
+tracks:
+
+  # ────────────────────────────────────────────────────────────── TRACK A ──
+  - id: steadiness
+    short: Marks
+    tag: MK
+    letter: A
+    name: "Steadiness & Marking"
+    color: green
+    cards:
+
+      - id: steadiness.title
+        type: title
+        title: "Steadiness in Marking Drills"
+        body: |
+          Marks and steadiness pull against each other. Buy steadiness by
+          preventing the break, not punishing it. Marking desire comes first —
+          never trade it away. Add difficulty on one axis at a time; keep the mark
+          itself easy whenever steadiness is the thing being tested.
+
+      - id: steadiness.s1
+        type: stage
+        n: 1
+        requires: []
+        title: "Held Hold on Singles"
+        drill: |
+          Short tab or lead at heel, or foot on the lead so hands are free. Throw an
+          easy short single. Hold her sitting through the fall, pause 1–2 sec, release
+          with her name. The lead does the enforcing, not you — a break should be
+          mechanically impossible.
+        pass: |
+          Holds through the fall with slack in the lead, not straining against it, across
+          ~10 reps and 2–3 sessions. The hold feels automatic before you ask for it
+          without restraint.
+        checks:
+          - {id: c1, label: "Holds through the fall, slack in the lead", hits: 10, of: 10, sessions: 3}
+        ifthen:
+          - ["Straining against the lead", "Mark is too exciting. Shorten the throw, cut the delay to zero, rebuild."]
+          - ["You find yourself correcting", "Go back to foot-on-lead. At this stage you prevent, you do not correct."]
+
+      - id: steadiness.s2
+        type: stage
+        n: 2
+        requires: [steadiness.s1]
+        title: "Release Delay"
+        drill: |
+          Same easy single, still managed. Stretch the pause from 1–2 sec toward
+          5–10+. Vary the timing every rep. Occasionally hold and pick the bumper up
+          yourself (no-bird) — sparingly. She releases to her name, not to the throw.
+        pass: |
+          Sits quietly through delays up to 8–10 sec — no whining, creeping, or
+          anticipating — and does not flinch toward a no-bird.
+        checks:
+          - {id: c1, label: "Quiet through randomized 8-10 sec delays", hits: 8, of: 10, sessions: 2}
+          - {id: c2, label: "No flinch toward a no-bird", hits: 3, of: 3}
+        ifthen:
+          - ["Creeps as the delay stretches", "The delay grew on a schedule she can read. Randomize: 2 sec, 9 sec, 3 sec, 6 sec."]
+          - ["Sours on no-birds", "You are using them too often. One rep in eight at the very most."]
+          - ["Return goes wide, or she parades", "Off-axis for this stage, but it will not fix itself. See The Parading Return."]
+
+      - id: steadiness.s3
+        diagram: mk-3
+        type: stage
+        n: 3
+        # The drill's own first sentence is "Prereq: MK-2 PASS and an honest
+        # return." The honest return lived in prose and was invisible to the
+        # gate graph, so the engine would have opened MK-3 on MK-2 alone —
+        # which is the gate Jason had to enforce by hand on 2026-08-09 when the
+        # return degraded and he dropped back to MK-2. Named here, 2026-08-09.
+        requires: [steadiness.s2, steadiness.ref_parade]
+        title: "Add Excitement — Noise Ladder"
+        equipment: [lead, bumpers, sidekick, light_loads, beeper, poppers_12ga, handheld_launcher]
+        blocked_note: "Rungs 1 and 4 need a GUN in the field — a second person. Rungs 2, 3 and 5 run solo."
+        session_cap: {reps: 6, applies_to: "launcher and popper reps", note: "Six loud reps a session, maximum. Thrown-bumper reps are not capped."}
+        drill: >
+          Prereq: {ref:steadiness.s2} PASS and an honest return. Light (green) loads,
+          low angle. Tube geometry: see Solo Launcher Sessions. FIVE rungs, one at a
+          time; each new noise resets the delay to 2 sec. 1. A gun throws, no shot.
+          2. Remote launch. 3. Add the beep 1–2 sec ahead. 4. Popper at the line, a gun
+          throws. 5. Handheld at the line. The beep drops at rung 4. One rep in five is
+          a shot with NO SEND. On lead all stage.
+        pass: >
+          1. 6/6 at 2 sec, x2. 2. 8/10 at randomized 8–10 sec. 3. 8/10 with the beep,
+          back to 8 sec. 4. 8/10 with the popper. 5. 8/10 with the handheld, x2.
+          Six loud reps a session, max.
+        checks:
+          - {id: r1, label: "A gun throws, no shot, 2 sec delay", hits: 6, of: 6, sessions: 2, needs_helper: true}
+          - {id: r2, label: "Remote launch, randomized 8-10 sec delay", hits: 8, of: 10}
+          - {id: r3, label: "Beep added, delay back to 8 sec", hits: 8, of: 10}
+          - {id: r4, label: "Popper at the line, a gun throws", hits: 8, of: 10, needs_helper: true}
+          - {id: r5, label: "Handheld launcher at the line", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Breaks when a new noise is added", "You stacked two. Pull the new one, re-establish, add it back alone at 2 sec."]
+          - ["Creeps or whines watching the tube", "The tube has become the cue. Not enough no-send reps — go to one in four."]
+          - ["Flinches or checks out at the report", "Stop. Do not push through. Tube to 100+ yds, happy retrieves only, rebuild over weeks."]
+
+      - id: steadiness.s4
+        type: stage
+        n: 4
+        requires: [steadiness.s3]
+        title: "Wean the Lead"
+        drill: |
+          Drop the lead but keep a tab on and stay close enough to intercept. Start
+          back at short delay plus easy mark, then rebuild delay and excitement off
+          lead. You are transferring the hold from mechanical restraint to a chosen sit.
+        pass: |
+          Multiple clean sessions of off-lead singles — steady through fall, delay, and
+          gun — with no break and no need to touch the tab.
+        checks:
+          - {id: c1, label: "Off-lead single, steady through fall/delay/gun", hits: 10, of: 10, sessions: 3}
+        ifthen:
+          - ["Breaks the moment the lead comes off", "She was holding the lead, not the sit. Back to Stage 1, foot on lead, for a week. See If She Breaks."]
+          - ["You keep reaching for the tab", "You moved into the stage too early. Stand closer — do not hold tighter."]
+
+      - id: steadiness.s5
+        type: stage
+        n: 5
+        requires: [steadiness.s4]
+        title: "Harder / Longer Marks"
+        drill: |
+          Only now do you make the retrieve itself demanding, with steadiness already
+          banked. Add distance, cover, angles, terrain — one axis at a time. Cover means
+          the cover you hunt: standing timber, open-water bank, short grass. Cross Lake's
+          cypress is the timber picture. You do not hunt marsh, so do not manufacture it.
+        pass: |
+          Steady on long and challenging singles, and marking them well. Drive and
+          steadiness both intact.
+        checks:
+          - {id: c1, label: "Steady on long or cover singles, marking well", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Steadiness wobbles as marks get hard", "Drop the mark difficulty back down. Do not crank corrections to hold the line."]
+          - ["Hunting short, poor marks", "You added two axes at once. Distance or cover, not both in the same session."]
+
+      - id: steadiness.s6
+        diagram: mk-67
+        type: stage
+        n: 6
+        requires: [steadiness.s5]
+        title: "Doubles on Lead"
+        drill: |
+          Lead back on. Mark the memory bird, HOLD; mark the go-bird, HOLD; release by
+          name for the go-bird; then send back for the memory. Physical management
+          through both falls. The second throw is the single biggest break trigger there is.
+        pass: |
+          Holds cleanly through both throws, on lead, until the pattern is boring. No
+          lunge on the second fall.
+        checks:
+          - {id: c1, label: "On-lead double, holds through both throws", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Lunges on the second throw", "Widen the two falls and lengthen the gap between them. Narrow it again later."]
+          - ["Forgets the memory bird", "Steadiness is eating her marking. Make the memory bird closer and easier."]
+
+      - id: steadiness.s7
+        diagram: mk-67
+        type: stage
+        n: 7
+        requires: [steadiness.s6]
+        title: "Doubles Off Lead"
+        drill: |
+          Wean the lead on doubles exactly as you did on singles — tab on, stay close,
+          rebuild. This is the finished picture, and it is a maintenance skill, not a
+          completed one.
+        pass: |
+          Consistent off-lead doubles, steady through both throws and the gun, marking
+          both birds.
+        checks:
+          - {id: c1, label: "Off-lead double, steady through both throws and gun", hits: 8, of: 10, sessions: 3}
+        ifthen:
+          - ["Switching between birds", "Back to on-lead doubles with wider separation between the falls."]
+          - ["Steady but slow", "Read the over-suppression card. Pull steadiness work for a week and run happy marks."]
+
+      - id: steadiness.ref_breaks
+        type: reference
+        trigger: failure
+        title: "If She Breaks"
+        body: |
+          1. Ideal: she never does, because you managed it.
+          2. Stop her with the tab. Walk her back to the exact spot. Reset.
+          3. Re-throw or have the thrower pick it up — the break earns nothing.
+          4. The lesson is simple and it is the only lesson: breaking = no retrieve.
+          5. Save the e-collar nick-on-sit for a clear, deliberate break once the rule is
+          plainly understood. Do not hammer a green dog at the line.
+
+      - id: steadiness.ref_suppression
+        type: reference
+        trigger: failure
+        title: "Over-Suppression — Back Off"
+        body: |
+          Warning signs: going slow off the line or no-going · popping (stopping to look
+          back for direction) · glancing back at you before the send · sticky or reluctant
+          releases.
+
+          Fix: fewer corrections. Throw fun free-for-all bumpers to rebuild drive.
+          Re-introduce steadiness gentler. Marking desire first, always. A slow dog is a
+          far more expensive problem than a dog that breaks.
+
+      - id: steadiness.ref_launcher
+        diagram: mk-r3
+        type: reference
+        trigger: prerequisite
+        title: "Solo Launcher Sessions"
+        body: |
+          Anchor her so the break is prevented mechanically: place board, stake-out chain,
+          or lead under your foot. Anchor → launch → HOLD → release by name. The place
+          board helps most: leaving it is an obvious, enforceable event.
+
+          Tube placement. Perpendicular to her running line, throwing across it. Never
+          aimed at the dog, at you, or across ground you will walk. What matters is
+          tube-to-FALL, not tube-to-dog: a light load carries ~50 yds alone, so a tube at
+          50 yds throwing flat gives a 70 yd mark. Lower the angle or move the tube in.
+
+          Same side, same direction for the whole of {ref:steadiness.s3} — the excitement is the new
+          variable, not the geometry. Light green loads while steadiness is being built.
+          Never dry fire a hand launcher: the dummy absorbs the charge. No dummy, no shot.
+
+          Sun behind her, wind quartering to her. Where they fight, take the sun — she has
+          to SEE the fall, and a tailwind only costs scent on a mark she watched down.
+          Wind wins later, on blinds. The sunset bearing swings 40°+ from August to November.
+
+      - id: steadiness.ref_parade
+        diagram: mk-r4
+        type: reference
+        trigger: failure
+        title: "The Parading Return"
+        # The PASS below was stated in prose only, so the state engine could not
+        # see it — and MK-R4 is a hard prerequisite for MK-3. Transcribed to a
+        # machine check 2026-08-09. NOT a new criterion: the numbers, the rung
+        # and the two-session requirement are the card's own words, unchanged.
+        # render_cards.py does not print checks, so the paper card is untouched.
+        checks:
+          - {id: c1, label: "Straight to hand, cord dragging untouched — RUNG 4 ONLY", hits: 9, of: 10, sessions: 2}
+        body: |
+          Parading is a recall problem with a bumper in her mouth, not a hold problem. Every lap pays her in possession.
+
+          Diagnose. One consistent side is handler habit; either side is attitude. Stand still, do not reach.
+
+          Prevent, do not correct. 50 ft cord on the ground, slack, at the distance the return is honest —
+          block the loop, never reel her in. Move away as she returns. Drop the platform ritual. No collar:
+          pressure plus possession buys a slow return. Pay every clean rep.
+
+          Fade ladder
+          1. Corridor, fenced both sides, cord dragging untouched.
+          2. Same corridor, line off-centre, last 10 yds outside the fence.
+          3. Open ground, one feature on her arcing side — {ref:lining.s1}'s picture.
+          4. Open ground, no feature, cord dragging.
+
+          PASS — rung 4 only. Rungs 1–3 are logged and never count.
+          9 of 10 straight to hand, cord dragging untouched.
+          Two sessions.
+
+      - id: steadiness.ref_funrep
+        type: reference
+        trigger: browse
+        title: "The Fun Rep"
+        body: |
+          The fun bumper is the period at the end of the session — the no-pressure rep the
+          standing rules require. Her desire is not the problem, so this is not medicine;
+          it is a ritual. Rationed and rules-lite, never rule-free.
+
+          One or two, never more. Announce it with its own release word, never a working
+          command. Throw short, easy, seen, into open ground. Steadiness is waived —
+          breaking on the throw IS the fun.
+
+          One rule survives: the bumper still ends in your hand. No front sit, no
+          formality. As she picks up, turn and walk toward the truck; she catches up
+          carrying and you take it at your side without reaching — or let her carry at
+          heel the whole way. Possession WITH you pays what she wants, in your direction.
+
+          Never chase, reach, or play keep-away. Never tug — possession is her fault
+          line. If she parades: no correction, no second bumper. The game simply ends.
+
+  # ────────────────────────────────────────────────────────────── TRACK B ──
+  - id: whistle
+    short: Whistle
+    tag: WH
+    letter: B
+    name: "Whistle Sit → Casting"
+    color: rust
+    cards:
+
+      - id: whistle.title
+        type: title
+        title: "Whistle Sit → Casting"
+        body: |
+          The one hard rule. The whistle never enters the bird picture until Stage 4 is
+          finished. No whistle on a return from a mark. No whistle on a dog driving to a
+          fall. {ref:whistle|track} lives on bare ground with piles and bumpers — no thrown marks,
+          no flyers.
+
+          Session 10–15 min, 2–3×/week, always after marking work. Never
+          collar-condition sit on a force-to-pile day. Never end on a pressure rep. If
+          marking goes sideways, skip {ref:whistle|track} entirely that day.
+
+      - id: whistle.s1
+        type: stage
+        n: 1
+        requires: []
+        title: "Whistle Sit at Heel, On Lead"
+        drill: |
+          One short blast. Butt hits the ground on the sound, not after it. Head comes up,
+          eyes find you. Walk, sit, release with a verbal. Then trot, sit, release. Both
+          directions.
+        pass: |
+          10/10 clean across three consecutive sessions, from a walk and from a trot,
+          both directions. Zero forward creep after the sit.
+        checks:
+          - {id: c1, label: "Butt on the sound, from a walk and from a trot", hits: 10, of: 10, sessions: 3}
+        ifthen:
+          - ["Sits late, after a beat", "Your lead pop is too slow. Pop the instant the whistle sounds, not after she ignores it."]
+          - ["Creeps forward on the sit", "Heel her TOWARD a wall or fence and blast a stride short of it — the creep has nowhere to go. Re-sit every creep, no scolding."]
+          - ["Looks away after sitting", "Not a pressure fix yet. Step in, get the eyes with a hand at your chest, release."]
+
+      - id: whistle.s2
+        diagram: wh-2
+        type: stage
+        n: 2
+        requires: [whistle.s1]
+        title: "Off Lead: Sit in Motion, Stop at Distance"
+        drill: |
+          Prereq: {ref:whistle.s1} PASS. Momentum is the variable, not distance. Four
+          steps, in order. 1. Heel off lead, one blast, she plants — KEEP WALKING 10+
+          steps, no pause. 2. Remote stay: back to 10→20→30→40 yds. 3. The stop — loose
+          and moving, no bumper, no pile — per Teaching the Stop in Motion. 4. Stop on
+          recall at ~15 yds.
+        pass: |
+          1. 10/10 both directions through 10 steps. 2. 5/5 at 40 yds, 30-sec hold, zero
+          creep. 3. 9/10 first-whistle stops at 40 in motion, two sessions, slide under
+          one body length. 4. 5/5 at 15 yds. Step 3 is the money skill.
+        checks:
+          - {id: r1, label: "Heel off lead, holds through 10 steps", hits: 10, of: 10}
+          - {id: r2, label: "Remote stay at 40 yds, 30 sec hold", hits: 5, of: 5}
+          - {id: r3, label: "First-whistle stop at 40 yds in motion", hits: 9, of: 10, sessions: 2}
+          - {id: r4, label: "Stop on recall at 15 yds", hits: 5, of: 5}
+        ifthen:
+          - ["Stays in 2, busts the stop in 3", "A stay is not a stop. Drop to 10 yds in motion and re-climb."]
+          - ["Ignores the whistle at distance", "Halve the distance. Never re-blow. See If She Blows the Whistle."]
+          - ["Recall slows, or creeps in watching", "Stop drilled into recall. Max 3 stops a session; end on 2 free recalls."]
+          - ["Slides past a body length", "See Teaching the Stop in Motion."]
+
+      - id: whistle.s3
+        type: stage
+        n: 3
+        requires: [whistle.s2]
+        title: "Sit and Look at Me"
+        drill: |
+          On a place board at 10 yds, sit her facing you. Square is taught by resetting,
+          not repeating: if the hip cocks, step one pace sideways — she must re-rotate to
+          face you — and pay only the square sit. Eye contact is paid from the front: mark
+          the instant her eyes find yours, treat at nose height. Climb 10→20→30 yds, then
+          stretch the hold to 10 sec. End state: squared, facing, eyes held until you cast
+          or release. A crooked or scanning dog cannot take a cast. Non-negotiable before
+          any casting work.
+        pass: |
+          Square, facing, eyes locked, holding through a 10-second pause at 30 yards.
+        checks:
+          - {id: c1, label: "Square, facing, eyes locked through 10 sec at 30 yds", hits: 9, of: 10, sessions: 2}
+        ifthen:
+          - ["Sits crooked, hip cocked", "She cannot cast left off a cocked right hip. Reset until it is square every single rep."]
+          - ["Eyes drift to the pile", "Pattern-guessing. Pause longer so the cast, not the pile, becomes the cue."]
+          - ["Fidgets and re-adjusts", "Shorten the hold, build back up. A fidgety sit becomes a break under bird pressure."]
+
+      - id: whistle.s4
+        type: stage
+        n: 4
+        requires: [whistle.s3]
+        title: "Collar-Condition the Sit"
+        drill: |
+          Indirect pressure only. Momentary nick simultaneous with the whistle — not
+          before, not after — on a command she already knows cold. Garmin Sport PRO:
+          start at the lowest level she acknowledges (a flick of the ear, not a yelp) and
+          raise only if she ignores.
+        pass: |
+          Sits on the whistle at all distances with the collar on and with it off. No
+          hesitation, no anticipation of the nick.
+        checks:
+          - {id: c1, label: "Sits on the whistle at all distances, collar on", hits: 10, of: 10, sessions: 2}
+          - {id: c2, label: "Same with the collar off", hits: 10, of: 10, sessions: 2}
+        ifthen:
+          - ["Yelps or shuts down", "Level too high. Drop it now, return to Stage 1 on lead, rebuild trust before retrying."]
+          - ["Sits before the whistle", "Reading your body, not the sound. Vary posture and timing; whistle from odd positions."]
+          - ["Sticky or slow on retrieves", "You stacked pressure. Pull {ref:whistle|track} for a week, run happy marks. See Over-Suppression."]
+
+      - id: whistle.s5
+        diagram: wh-5
+        type: stage
+        n: 5
+        requires: [whistle.s4]
+        title: "Baseball — Three-Handed Casting"
+        drill: |
+          Dog on the mound, three piles at 15 yds (left, right, back). Teach back first —
+          it is the natural direction and the one she already wants. Then overs, one side
+          at a time. Then mix. Angle backs come last.
+        pass: |
+          Clean singles on back, left over, and right over. Takes the cast on the first
+          signal — no re-cast, no self-selecting a pile.
+        checks:
+          - {id: c1, label: "Back, first signal", hits: 9, of: 10}
+          - {id: c2, label: "Left over, first signal", hits: 9, of: 10}
+          - {id: c3, label: "Right over, first signal", hits: 9, of: 10}
+          - {id: c4, label: "Mixed casts, no self-selecting", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Takes the wrong pile", "She is guessing. Stop mixing. Ten straight reps of the failing cast, then reintroduce choice. See Naming Casts."]
+          - ["Won't leave on 'back'", "The pile is not established. Walk her to it, throw a bumper into it, restart at 5 yds."]
+          - ["Spins before casting", "The sit is not square. That is a Stage 3 failure — go back one card."]
+
+      - id: whistle.s6
+        diagram: wh-6
+        type: stage
+        n: 6
+        requires: [whistle.s5]
+        title: "Single T → Double T"
+        drill: |
+          Casting transfers off the diamond onto a lining pattern. Single T: one pile
+          straight back, two side piles at the crossbar. Whistle-sit her midway, cast.
+          Double T adds a second crossbar to build distance discipline.
+        pass: |
+          Runs the pattern at distance, stops on a single whistle mid-run, takes any of
+          three casts cleanly and repeatedly.
+        checks:
+          - {id: c1, label: "Single T: stop mid-run, three casts clean", hits: 8, of: 10, sessions: 2}
+          - {id: c2, label: "Double T at distance", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Popping (stops and looks back uncast)", "You over-handled. Let her run more lines without stopping her. Expensive to fix — catch it early."]
+          - ["Veers off the line to the back pile", "Suction from a side pile. Re-run the back line alone until it is a highway."]
+          - ["Slows at the crossbar", "She is anticipating a stop. Run several reps with no whistle at all."]
+
+      - id: whistle.s7
+        type: stage
+        n: 7
+        requires: [whistle.s6, steadiness.s4]
+        title: "Convergence — Whistle Meets Birds"
+        drill: |
+          Only now does the whistle rejoin the bird picture, and only as steadiness
+          insurance: sit on the line, sit after the retrieve, sit to honor. Still not a stop on
+          a return from a mark. Handling on blinds is Phase 3 — well past double T.
+        pass: |
+          Whistle sit holds under bird pressure at the line without slowing her drive to
+          the fall or her return.
+        checks:
+          - {id: c1, label: "Whistle sit at the line under bird pressure, no loss of drive", hits: 9, of: 10, sessions: 3}
+        ifthen:
+          - ["Delivery gets slow after convergence", "Immediate red flag. Pull the whistle out of the bird picture for two weeks. Happy marks only."]
+          - ["Won't sit at the line with a bird out", "Bird pressure exceeds her training level. Dead bumpers, then frozen ducks, then flyers."]
+          - ["Anticipates the whistle, self-sits", "Over-drilled. More free retrieves, fewer reps."]
+
+      - id: whistle.ref_refusal
+        type: reference
+        trigger: failure
+        title: "If She Blows the Whistle"
+        body: |
+          1. No emotion. Do not yell. A whistle refusal punished in anger becomes a
+          whistle the dog dreads.
+          2. Go get her. Walk out, take her collar, place her back on the exact spot where
+          the whistle sounded. Silence the whole way.
+          3. Re-sit, hold, release. Then run the same setup at a difficulty she can win.
+          4. Never re-blow. One whistle. If she ignores it you enforce — you do not
+          repeat. A repeated whistle teaches that the first one is optional.
+          5. Two failures in a row = drop a stage. Not a discipline problem. A
+          training-level problem.
+
+      - id: whistle.ref_solo
+        type: reference
+        trigger: browse
+        title: "Working Solo"
+        body: |
+          • Piles beat throws. Stages 5–6 are built entirely on stationary piles — which is
+          exactly why they work without a helper.
+          • A remote launcher helps {ref:steadiness|track}, but it is not needed for {ref:whistle|track} at all.
+          Do not wait on hardware to start whistle sit.
+          • Use a longer lead than you think you need for Stage 2. Twenty feet of check
+          cord is worth more than a helper.
+          • Stake or flag your piles. Consistent pile locations are the single biggest
+          predictor of clean casting.
+          • Before {ref:whistle.s4}, walking out and placing her is your only enforcement. That walk is
+          what caps your working distance in Stage 2 — not her ability.
+
+
+      - id: whistle.ref_stop
+        type: reference
+        trigger: prerequisite
+        title: "Teaching the Stop in Motion"
+        body: |
+          Read before {ref:whistle.s2} step 3. The stop is built WITH her, not sprung on
+          her. Walk together off heel, blow once mid-stride, and KEEP MOVING — she must
+          key on the whistle, not on you stopping. The commonest handler mistake is the
+          pause: pause at the blast and the pause becomes the cue, and the whistle stays
+          empty. Climb SPEED before DISTANCE — walk, trot, loose run, each clean before
+          the next — then stretch 10→20→30→40 yds. After the plant, WALK TO HER and pay
+          at the spot she stopped. Never recall off a stop while it is being built: the
+          stop decays into a slow creep-in. Measure the slide against a line on the
+          ground — a football field's 5-yd marks are ideal. Pay behind the line she
+          planted on, never ahead of it. If the slide grows past a body length, drop one
+          speed class and re-climb. PASS lives on {ref:whistle.s2}: 9/10
+          first-whistle stops at 40 in motion, slide under one body length, two sessions.
+      - id: whistle.gate_convergence
+        type: gate
+        title: "Convergence Gate — Do Not Skip"
+        body: |
+          {ref:steadiness|track} and {ref:whistle|track} stay physically and temporally separate until Stage 4 is
+          complete and holding for at least two weeks.
+
+          If you find yourself wanting to blow the whistle at a marking dog before then,
+          the answer is no.
+
+          Every trainer worth listening to on this — King, Standing Stone, Lone Duck —
+          says the same thing: a whistle used to fix a marking problem creates a handling
+          problem that outlives the marking problem.
+
+  # ────────────────────────────────────────────────────────────── TRACK C ──
+  - id: lining
+    short: Lines
+    tag: LN
+    letter: C
+    name: "Lining & Blinds"
+    color: tan
+    cards:
+
+      - id: lining.title
+        type: title
+        title: "Lining & Blinds"
+        body: |
+          Stages 1–5 need no whistle, no casts, no handling — they are line mechanics
+          and can start today. Stages 6–7 are blinds and are locked behind {ref:whistle|track} single
+          T. A dog that cannot be stopped at distance cannot be corrected on a blind.
+
+          Adapted from Adem Fehmi (Dog-ease, Hertfordshire). Resequenced for a
+          collar-conditioned US program — commands, gating, and correction model are
+          not his.
+
+      - id: lining.s1
+        diagram: ln-1
+        type: stage
+        n: 1
+        requires: []
+        title: "Backstop Line"
+        drill: |
+          Levee crown, treeline, fence, or canal bank as a backstop. Dummy thrown
+          20–30 yds parallel to the feature, dog at heel, wind in her face. Line her up,
+          send with back. She has seen the fall.
+        pass: |
+          5 of 5 out and back with no arc off the feature, clean delivery to hand.
+        checks:
+          - {id: c1, label: "Out and back, no arc, clean delivery", hits: 5, of: 5}
+        ifthen:
+          - ["Arcs away from the feature", "Move closer to it. The feature must be within a few feet of her line, not a distant landmark."]
+          - ["Hunts short", "The throw is too long for the ground. Shorten until the line is a highway, then stretch."]
+          - ["Wide or slow coming back", "PASS needs a clean delivery, not just a clean outrun. See The Parading Return in Marks."]
+
+      - id: lining.s2
+        type: stage
+        n: 2
+        requires: [lining.s1]
+        title: "Both Directions"
+        drill: |
+          Same ground, same backstop. Alternate throws left and right of your position,
+          re-heeling and re-lining her every rep. The line must come from how you set her
+          up, not from a habit.
+        pass: |
+          She sets up on your line each time without drifting toward the previous side.
+          5 of 5 both ways.
+        checks:
+          - {id: c1, label: "Sets up on your line, alternating sides", hits: 5, of: 5}
+        ifthen:
+          - ["Pre-loads on one side", "Run three in a row on the weak side, then reintroduce alternation."]
+          - ["Won't sit square to the line", "That is a {ref:whistle.s3|full} problem. Fix it there, not here."]
+
+      - id: lining.s3
+        type: stage
+        n: 3
+        requires: [lining.s2]
+        title: "Distance & Wind"
+        drill: |
+          Same ground stretched to 50–70 yds, throw into the wind. Change your start
+          point along the feature so the ground stays familiar and the picture does not.
+        pass: |
+          Straight line held at full distance. No hunting short, no swinging wide of the
+          feature.
+        checks:
+          - {id: c1, label: "Straight line held at 50-70 yds into the wind", hits: 5, of: 5, sessions: 2}
+        ifthen:
+          - ["Line falls apart past 40 yds", "Add ten yards at a time, not twenty. Back up to the last distance that held."]
+          - ["Overruns with wind at her back", "Reset to throwing into the wind until the line is reliable at that distance."]
+          - ["The feature runs out before the throw does", "The feature must be longer than the mark or the start point cannot move. Run 50 yds on a 60 yd feature; save 70 for longer ground."]
+
+      - id: lining.s4
+        type: stage
+        n: 4
+        requires: [lining.s3]
+        title: "Memory Retrieve"
+        drill: |
+          Lead on. Walk her to heel down the backstop, plant the dummy, let her mark it,
+          then about turn AWAY from the plant — never across her line to it. Heeling on
+          the left, that is a right about turn. Walk back, sit, lead off, send.
+        pass: |
+          Clean send and straight line on a planted dummy at 40+ yds, with no creeping
+          while you walk back. 5/5, two sessions.
+        checks:
+          - {id: c1, label: "Memory retrieve at 40+ yds, no creeping", hits: 5, of: 5, sessions: 2}
+        ifthen:
+          - ["Creeps while you walk back", "Lead stays on and under your foot. This is a {ref:steadiness.s1|full} picture — treat it as one."]
+          - ["Forgets the fall", "Shorten the walk-back and let her watch you plant it longer before you turn away."]
+
+      - id: lining.s5
+        diagram: ln-5
+        type: stage
+        n: 5
+        requires: [lining.s4]
+        title: "Honest Dog (Seen Diversion)"
+        drill: |
+          Two dummies down, both seen. Send her for the far one. You walk out and pick
+          the near one yourself. Vary which one she gets so it never becomes a pattern.
+          This is the honor picture, trained without a blind.
+        pass: |
+          Takes the sent line past a visible diversion 4 of 5, and sits quiet while you
+          collect the other.
+        checks:
+          - {id: c1, label: "Takes the sent line past a visible diversion", hits: 4, of: 5}
+        ifthen:
+          - ["Takes the diversion", "Widen the angle between the two and shorten the sent one until she wins, then rebuild."]
+          - ["Whines while you pick up", "Ignore it, finish, and release her on a different rep. Never send her for the one she whined at."]
+
+      - id: lining.gate
+        type: gate
+        title: "GATE — Stop Here"
+        body: |
+          Do not run Stages 6–7 until {ref:whistle|track} is complete through single T.
+
+          That means: sit on a single whistle at distance, and left over, right over, and
+          back taken cleanly off that stop.
+
+          A dog that cannot be stopped at distance cannot be corrected on a blind.
+          Running blinds early is how you build a dog that takes a wrong line at full
+          speed, or a dog that pops. Until the gate is cleared, the next two cards are a
+          roadmap — not a to-do list.
+
+      - id: lining.s6
+        type: stage
+        n: 6
+        requires: [lining.s5, whistle.s6]
+        title: "Pattern Blind on Known Ground"
+        drill: |
+          The same backstop you have used since Stage 1. Plant the dummy with her out
+          of sight. Line her up, send. A wrong line gets a sit whistle and a recast — not a
+          recall, not a re-send.
+        pass: |
+          3 of 3 pattern blinds at 60–80 yds with no more than one handle each.
+        checks:
+          - {id: c1, label: "Pattern blind 60-80 yds, one handle or fewer", hits: 3, of: 3}
+        ifthen:
+          - ["Pops — stops and looks back uncast", "You over-handled. Run lines with no whistle before returning to blinds. See Over-Suppression."]
+          - ["No-go on the send", "She does not believe there is anything out there. Show her the plant for a few reps."]
+
+      - id: lining.s7
+        type: stage
+        n: 7
+        requires: [lining.s6]
+        title: "Blind with Diversion"
+        drill: |
+          Throw a diversion dummy she sees, off to one side. Send her for the blind on the
+          far side. You pick the diversion yourself. This is the shoot-day picture and the
+          test picture.
+        pass: |
+          Refuses the diversion and takes the blind line 3 of 4, with one handle or fewer.
+        checks:
+          - {id: c1, label: "Blind with diversion, one handle or fewer", hits: 3, of: 4}
+        ifthen:
+          - ["Suction to the diversion", "Increase the angle between them and shorten the blind. Rebuild from a rep she can win."]
+          - ["Handles well but slows down", "Reduce reps. Blinds are expensive. End early and end on a win."]
+
+      - id: lining.ref_casts
+        diagram: ln-r1
+        type: reference
+        trigger: prerequisite
+        title: "Naming Casts"
+        body: |
+          Casts are named for your arm, not her body.
+
+          A right over means your right arm goes out and she moves in that direction.
+
+          The source video muddles this repeatedly — calling the same dummy "on my
+          right" and then "a bit further on her left" within one rep. Pick handler-side, say
+          it out loud in every session, and never describe a cast from her point of view.
+          The moment you are handling a dog at eighty yards in wind is the wrong
+          moment to work out which side you meant.
+
+      - id: lining.ref_import
+        type: reference
+        trigger: browse
+        title: "What Not to Import"
+        body: |
+          The verbal. Fehmi uses one word — "get out" — for both left and right and lets
+          the hand carry the meaning. Reba is on back / here / sit. Do not add a third
+          verbal mid-foundation.
+
+          The sequencing. He runs blinds off nothing but good seen and memory
+          retrieves. That works in a no-collar picking-up program with a pro reading the
+          dog. It does not transfer here.
+
+          The correction model. His answer to a bad rep is to drop back a step — keep
+          that. But your answer to a wrong line after the gate is a whistle stop and a
+          recast.
+
+          The about turn. He turns left on the memory retrieve. Reba heels on the left, so
+          a left turn sweeps you across her line to the plant. Turn away from the plant
+          instead — a right about turn here.
+
+  # ────────────────────────────────────────────────────────────── TRACK D ──
+  - id: water
+    short: Water
+    tag: WA
+    letter: D
+    name: "Water"
+    color: slate
+    cards:
+
+      - id: water.title
+        type: title
+        title: "Water Work"
+        body: |
+          Water is where a duck dog earns her keep, and it is the only track that gets
+          easier in Louisiana heat. Stages 1–3 run now. Reba is already a confident
+          swimmer, so Stage 1 is a check, not a build.
+
+          Stages 4–7 are pressure and casting in water and sit behind the gate card.
+          One axis at a time applies double here: the water is itself a difficulty, so
+          never add a second one in the same session.
+
+          Stage 3 runs parallel to {ref:steadiness|track} by decision — it does not wait on
+          {ref:steadiness.s4}. Water re-opens the break because the entry is its own
+          excitement, so steadiness gets rebuilt in miniature rather than assumed.
+
+      - id: water.s1
+        type: stage
+        n: 1
+        requires: []
+        title: "Baseline — Swimmer, Entry, Delivery"
+        drill: |
+          Short happy singles, 15–25 yds, calm water, clean bank. Measuring, not teaching:
+          that she swims level and relaxed, enters without shopping the bank, and carries
+          to hand without dropping to shake. Let her put it down once and it is the habit.
+        pass: |
+          5/5 straight entries at 20 yds and 5/5 delivered to hand with no drop, across
+          two sessions. Fail on delivery only — fix it here, do not carry it into Stage 2.
+        checks:
+          - {id: c1, label: "Straight entry at 20 yds", hits: 5, of: 5, sessions: 2}
+          - {id: c2, label: "To hand, no drop or shake first", hits: 5, of: 5, sessions: 2}
+        ifthen:
+          - ["Drops it at the bank to shake", "Back up as she lands so she must follow you to deliver. Never reach for it at the water's edge."]
+          - ["Arcs wide on the return, or parades", "Fails this PASS, not just Marks. Same dog, third context. See The Parading Return."]
+          - ["Shops the bank for a shallow entry", "That is bank running starting. Read the Bank Running card now, not in a year."]
+          - ["Swims low, thrashes, or tires fast", "Stop. Drop to 10 yds and rebuild. A confident swimmer is this track's prerequisite, not its goal."]
+
+      - id: water.s2
+        type: stage
+        n: 2
+        requires: [water.s1]
+        title: "Entries — Straight Off the Bank"
+        drill: |
+          The Cross Lake pictures, one at a time: clean bank, then mud, then cover, then
+          the dock. Wade each new entry before her first send off it — see Water Safety.
+          Line her square and send. The entry must be straight off the line you gave her —
+          no scanning for a better spot. Change entry type only when the current one is
+          boring.
+        pass: |
+          5/5 straight entries on each of clean bank, mud, and cover at 25–40 yds. Dock
+          entry counted separately, 5/5 — the height is a different variable.
+        checks:
+          - {id: c1, label: "Clean bank entry, straight", hits: 5, of: 5}
+          - {id: c2, label: "Mud entry, straight", hits: 5, of: 5}
+          - {id: c3, label: "Cover entry, straight", hits: 5, of: 5}
+          - {id: c4, label: "Dock entry", hits: 5, of: 5}
+        ifthen:
+          - ["Runs the bank before entering", "Angle the setup so the bank offers no shortcut; shorten until she takes water straight. See Bank Running."]
+          - ["Balks at mud or cover", "She is unsure of the footing, not testing you. Walk in WITH her once, then send from 10 yds and rebuild distance."]
+          - ["Hesitates on the dock", "Height, not water. Sit her on the dock, throw short, let her choose to go. Never push a dog off a dock."]
+
+      - id: water.s3
+        type: stage
+        n: 3
+        requires: [water.s2]
+        title: "Water Singles with Steadiness"
+        drill: |
+          Parallel to {ref:steadiness|track}, not gated behind it. Rebuild the ladder in miniature
+          because water re-opens the break. Three rungs: 1. Lead on, foot on the lead,
+          easy 20 yd single, 1–2 sec delay. 2. Stretch the delay, randomized. 3. Launcher
+          fired across the water. Off lead only once the on-lead hold is boring.
+        pass: |
+          1. 10/10 held on lead through the fall at 20 yds. 2. 8/10 through randomized
+          8–10 sec delays. 3. 8/10 off lead. Two sessions at each rung.
+        checks:
+          - {id: r1, label: "On lead, holds through the fall at 20 yds", hits: 10, of: 10, sessions: 2}
+          - {id: r2, label: "Randomized 8-10 sec delay", hits: 8, of: 10, sessions: 2}
+          - {id: r3, label: "Off lead, steady through fall and delay", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Steady on land, breaks at the water", "Expected. Different picture. Foot on the lead, back to a 1-sec delay, rebuild."]
+          - ["Whines at the water's edge", "Held too long too early. Halve the delay and build back up."]
+          - ["Loses drive into the water", "Pull steadiness for a week, run happy water marks. Water desire costs as much to rebuy as marking desire."]
+
+      - id: water.gate
+        type: gate
+        title: "GATE — Force to Water"
+        body: |
+          Do not run Stages 4–7 until all three are true: land force to pile is complete
+          (it is — Colten Ducote), Stages 1–3 have passed, and she is a happy, confident
+          swimmer under no pressure at all.
+
+          Beyond that, each late stage carries its own dependency. Swim-by additionally
+          requires {ref:whistle.s5}. Water T requires {ref:whistle.s6}. Water blinds require
+          {ref:lining.s6}.
+
+          Force to water run early buys a water-shy dog, and water shyness is the hardest
+          thing on this list to undo. A dog that will not enter water is not a duck dog.
+
+      - id: water.s4
+        type: stage
+        n: 4
+        requires: [water.s3]
+        title: "Force to Water"
+        drill: |
+          Collar overlay on a command she already owns, in water she already likes. Short,
+          straight, shallow entries first — she must be able to walk out. Pressure only on
+          a refusal to enter, never on a slow return. Garmin at the lowest level she
+          acknowledges. Never end a session on a pressure rep.
+        pass: |
+          10/10 immediate entries on command at three distances with the collar on, two
+          consecutive sessions. Then 10/10 with the collar off.
+        checks:
+          - {id: c1, label: "Immediate entry on command, collar on", hits: 10, of: 10, sessions: 2}
+          - {id: c2, label: "Same with the collar off", hits: 10, of: 10, sessions: 2}
+        ifthen:
+          - ["Turns away, sniffs, freezes", "Avoidance. Level too high or picture too hard. Stop and run happy water marks for a week."]
+          - ["Enters well, returns slowly", "Not a force problem. Never add pressure to a return. Shorten the retrieve instead."]
+          - ["Sharp with the collar, sloppy without", "Collar-wise. Vary which sessions she wears it, and put it on for non-training days."]
+
+      - id: water.s5
+        diagram: wa-5
+        type: stage
+        n: 5
+        requires: [water.s4, whistle.s5]
+        title: "Swim-By"
+        drill: |
+          Baseball in water. A cove or pond with a point she must swim past rather than
+          round. Sit whistle in open water, then back, then overs one side at a time. The
+          cast has to be taken in the water — the moment she touches bank the rep is over.
+          Teach back first, same as on land.
+        pass: |
+          9/10 sit whistle held in open water. 8/10 each on back, left over, and right
+          over, taken without touching bank. Two sessions.
+        checks:
+          - {id: c1, label: "Sit whistle held in open water", hits: 9, of: 10}
+          - {id: c2, label: "Back, taken in water", hits: 8, of: 10, sessions: 2}
+          - {id: c3, label: "Left over, taken in water", hits: 8, of: 10, sessions: 2}
+          - {id: c4, label: "Right over, taken in water", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Cheats to the bank on the cast", "Move the setup so the bank is not a shortcut. Shorten until she wins. See Bank Running."]
+          - ["Will not sit in water", "Back to {ref:whistle.s4} on land. Open water is not where you teach a sit."]
+          - ["Pops mid-swim", "Over-handled. Run several water lines with no whistle at all before returning."]
+
+      - id: water.s6
+        type: stage
+        n: 6
+        requires: [water.s5, whistle.s6]
+        title: "Water T"
+        drill: |
+          Single T moved onto water. Back pile across the pond, two side piles in the
+          shallows or on the far bank. Whistle-sit her mid-swim and cast. This is distance
+          discipline in a medium that costs her real effort.
+        pass: |
+          8/10 pattern runs with a clean mid-swim stop and any of three casts taken, across
+          two sessions.
+        checks:
+          - {id: c1, label: "Mid-swim stop plus three casts clean", hits: 8, of: 10, sessions: 2}
+        ifthen:
+          - ["Slows mid-swim anticipating the stop", "Run several reps with no whistle at all until the swim is honest again."]
+          - ["Veers toward the near bank", "Suction. Re-run the straight back line alone until it is a highway."]
+          - ["Tires fast", "Water T is physically expensive. Cut the rep count, never the standard. See Water Safety."]
+
+      - id: water.s7
+        type: stage
+        n: 7
+        requires: [water.s6, lining.s6]
+        title: "Water Blinds & Cheating Singles"
+        drill: |
+          The hunt picture. A blind across water she has not seen planted, and cheating
+          singles — marks set so the bank looks cheaper than the swim. You pick the
+          diversion yourself. This is Cross Lake and Yang Ming in miniature.
+        pass: |
+          3/4 water blinds at 50–70 yds with one handle or fewer, and 4/5 cheating singles
+          taken straight through the water.
+        checks:
+          - {id: c1, label: "Water blind 50-70 yds, one handle or fewer", hits: 3, of: 4}
+          - {id: c2, label: "Cheating single taken through the water", hits: 4, of: 5}
+        ifthen:
+          - ["Takes the bank route", "Shorten the blind, increase the angle so the bank costs more than it saves. See Bank Running."]
+          - ["Handles well but slows down", "Reduce reps. Water blinds are expensive. End early and end on a win."]
+          - ["No-go on the send", "She does not believe anything is out there. Show her the plant for a few reps."]
+
+      - id: water.ref_bank
+        type: reference
+        trigger: failure
+        title: "Bank Running — Kill It Early"
+        body: |
+          Bank running is the dog choosing the dry route. Every time it works it is
+          reinforced by success — she still got the bumper.
+
+          It is not disobedience. It is efficiency, and she is right. Your job is to make
+          the straight line the cheap one, not to punish her for arithmetic.
+
+          Fixes: angle the setup so the bank offers no shortcut · shorten until she takes
+          water straight · use a channel or cove where dry land is not adjacent to the
+          line · stop the rep the moment she climbs out, so a cheat never finishes.
+
+          Catch it in {ref:water.s1}. A three-year-old bank runner is a rebuild, not a fix.
+
+      - id: water.ref_safety
+        type: reference
+        trigger: prerequisite
+        title: "Water Safety — Entry, Heat, Gulping"
+        body: |
+          Submerged obstructions. Wade every entry before her first send off it, and again
+          after high water. A limb a swimming dog never touches sits at chest height for a
+          dog launching off a bank at speed. Entries move with lake stage — pin each to a
+          fixed object on the bank, not to the waterline.
+
+          Water intoxication. Gulping while she retrieves can dilute blood sodium enough to
+          swell brain cells. Onset is fast — hours. Signs: vomiting, staggering, lethargy,
+          glazed eyes, dilated pupils, drooling, bloating; seizures or collapse when
+          severe. Emergency — go to a vet. Small dogs are at higher risk and Reba is 45 lb.
+
+          Prevention: frequent breaks, a hard cap on continuous reps, and stop the session
+          if she gulps on the swim.
+
+          Heat: Louisiana water is warm and will not cool her. Watch for overheating in the
+          lake, not just on the bank. Ears: dry them after every session.
