@@ -1,0 +1,173 @@
+# SEASON.yaml — the one place season dates live.
+#
+# Reconstructed 2026-08-10 from REBA_PROGRAM.md's 2026-08-09 decision-log entry
+# "SEASON DATES CORRECTED — THE SPLITS WERE HIDING TWO CLOSURES", which is the
+# verified record. The 08-09 original was lost with patch_060.py; see HANDOFF.md.
+#
+# WHY THIS FILE EXISTS. The file previously carried Arkansas as "Nov 21-Jan 31
+# (split)" and Louisiana West as "Nov 14-Jan 24 (split)". Both are spans with
+# HOLES in them, and written that way the holes are invisible to anyone planning
+# a trip. Every segment below is an explicit closed interval. There are no
+# spans-with-splits in this file, by design.
+#
+# BUILD-TIME INPUT. build_app.py reads this and bakes it into the payload. The
+# app must NOT fetch it at runtime — that adds a precached asset and forces a
+# service-worker cache bump every time a date is corrected.
+#
+# Every entry carries source: and checked:. An entry without both is not a date,
+# it is a rumour.
+
+meta:
+  version: 2026-08-10
+  timezone: America/Chicago     # never UTC, never a fixed offset
+  note: >
+    RE-CHECK Louisiana against the printed pamphlet before buying a licence.
+    Louisiana's own dates document is still titled PROPOSED.
+
+seasons:
+
+  # ---- ARKANSAS — FINAL -------------------------------------------------
+  - id: ar_duck
+    state: AR
+    species: duck
+    label: Arkansas duck
+    segments:
+      - {open: 2026-11-21, close: 2026-11-29}
+      - {open: 2026-12-10, close: 2026-12-23}
+      - {open: 2026-12-26, close: 2027-01-31}
+    closed:
+      - {from: 2026-11-30, to: 2026-12-09, why: "between segments 1 and 2"}
+      - {from: 2026-12-24, to: 2026-12-25, why: "between segments 2 and 3"}
+    source: "AGFC — Commission set the season April 2026; AGFC publishes it directly"
+    checked: 2026-08-09
+    status: final
+    app_marker:
+      show: true
+      kind: season
+      label: Arkansas regular season   # the WEEK tab's wording, not this file's
+
+  - id: ar_duck_vet_youth
+    state: AR
+    species: duck
+    label: Arkansas veteran / active-duty / youth hunt
+    segments:
+      - {open: 2027-02-06, close: 2027-02-07}
+    source: "AGFC"
+    checked: 2026-08-09
+    status: final
+
+  - id: ar_teal
+    state: AR
+    species: teal
+    label: Arkansas early teal
+    segments:
+      - {open: 2026-09-19, close: 2026-09-27}
+    source: "AGFC"
+    checked: 2026-08-09
+    status: final
+    program_note: >
+      EXPOSURE, NOT A TARGET. Ruled 2026-08-08. Staked, unscored, one easy bird
+      or none. No deadline math hangs off this date.
+    app_marker:
+      show: true
+      kind: exposure
+
+  - id: ar_dove
+    state: AR
+    species: dove
+    label: Arkansas dove
+    segments:
+      - {open: 2026-09-05, close: 2026-10-25}
+      - {open: 2026-12-08, close: 2027-01-15}
+    source: "AGFC, dove included in the same April 2026 publication"
+    checked: 2026-08-09
+    status: final
+    dog_note: >
+      REBA DOES NOT GO TO A DOVE FIELD IN 2026. Ruled 2026-08-09. The opener is
+      two weeks before teal and is the earliest gunfire on the calendar; a dove
+      field is three or four guns firing fast. MK-3 is at rung 1 and STOOD DOWN,
+      and its own IF/THEN says a flinch at the report costs weeks. Staked at
+      fifty yards watching one is a different thing and would be written as a
+      card, not improvised.
+
+  # ---- LOUISIANA — PROPOSED, CORROBORATED TWICE BY COMPLEMENT -----------
+  - id: la_duck_west
+    state: LA
+    zone: west
+    species: duck
+    label: Louisiana West Zone duck
+    segments:
+      - {open: 2026-11-14, close: 2026-12-06}
+      - {open: 2026-12-19, close: 2027-01-24}
+    closed:
+      - {from: 2026-12-07, to: 2026-12-18, why: "between segments"}
+    source: >
+      LDWF dates document, still titled PROPOSED. Corroborated twice BY
+      COMPLEMENT rather than taken on its face: the extended-falconry emergency
+      declaration sets West Zone falconry for Dec 7-18, and the goose
+      conservation order runs Dec 7-18 in both zones. Falconry and the
+      conservation order run ONLY when the regular season is shut, so both
+      windows are the exact inverse of the proposed regular dates. Two
+      independent documents, same hole.
+    checked: 2026-08-09
+    status: proposed
+    program_note: >
+      THIS IS THE TARGET. Caddo Lake, 2026-11-14. Ruled 2026-08-08 — the program
+      trains to this date, and gates set the pace to it.
+    app_marker:
+      show: true
+      kind: target                     # drives the countdown ribbon
+      label: Louisiana West Zone opens · Caddo Lake
+
+  - id: la_duck_west_youth_vet
+    state: LA
+    zone: west
+    species: duck
+    label: Louisiana West Zone youth and veterans
+    segments:
+      - {open: 2026-11-07, close: 2026-11-08}
+    source: "LDWF proposed dates document"
+    checked: 2026-08-09
+    status: proposed
+
+  - id: la_duck_east
+    state: LA
+    zone: east
+    species: duck
+    label: Louisiana East Zone duck
+    segments:
+      - {open: 2026-11-21, close: 2026-12-06}
+      - {open: 2026-12-19, close: 2027-01-31}
+    source: "LDWF proposed dates document; same Dec 7-18 closure corroborated by the goose conservation order"
+    checked: 2026-08-09
+    status: proposed
+
+  - id: la_dove_north
+    state: LA
+    zone: north
+    species: dove
+    label: Louisiana dove, North Zone (Shreveport)
+    segments:
+      - {open: 2026-09-05, close: 2026-09-27}
+      - {open: 2026-10-10, close: 2026-11-15}
+      - {open: 2026-12-19, close: 2027-01-17}
+    source: "LDWF proposed dates document"
+    checked: 2026-08-09
+    status: proposed
+    dog_note: "See ar_dove. Reba does not go to a dove field in 2026."
+
+  - id: la_whistling_duck
+    state: LA
+    species: black_bellied_whistling_duck
+    label: Louisiana black-bellied whistling duck
+    segments:
+      - {open: 2026-10-03, close: 2026-10-11}
+    source: "LDWF; pending USFWS approval"
+    checked: 2026-08-09
+    status: watch_item
+    program_note: "EXPOSURE, NOT A TARGET. Same ruling as teal, 2026-08-08."
+    app_marker:
+      show: false                      # flip to true to put it on the WEEK tab.
+      kind: exposure                   # held off because USFWS approval is still
+                                       # pending — a date on the phone reads as
+                                       # settled and this one is not.
