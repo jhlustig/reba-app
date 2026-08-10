@@ -275,7 +275,11 @@ tracks:
         # and the two-session requirement are the card's own words, unchanged.
         # render_cards.py does not print checks, so the paper card is untouched.
         checks:
-          - {id: c1, label: "Straight to hand, cord dragging untouched — RUNG 4 ONLY", hits: 9, of: 10, sessions: 2}
+          # rung: 4 added 2026-08-10. The label said RUNG 4 ONLY in capitals and
+          # nothing enforced it — a rung-1 block scoring 10/10 would have banked,
+          # and could have lifted the MK-3 stand-down. state.py rule 6 now refuses
+          # any row that does not carry a matching rung:.
+          - {id: c1, label: "Straight to hand, cord dragging untouched — RUNG 4 ONLY", hits: 9, of: 10, sessions: 2, rung: 4}
         body: |
           Parading is a recall problem with a bumper in her mouth, not a hold problem. Every lap pays her in possession.
 
