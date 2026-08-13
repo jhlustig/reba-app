@@ -546,6 +546,59 @@ function openNow(){
   return out;
 }
 
+/* ---- Suggestion engine (ruled 2026-08-13) ----
+   Rank open cards by: 1) one-away from banking, 2) gate leverage,
+   3) staleness. Returns up to n suggestions. */
+function suggest(openCards, n){
+  const ST = DECK.state;
+  if(!ST) return openCards.slice(0, n);
+  const today = todayCentral();
+  const histAll = (DECK.week && DECK.week.history) || {};
+
+  /* gate leverage: how many locked cards sit behind each card (by id) */
+  const idToCode = {};
+  for(const c of DECK.cards) idToCode[c.id || ''] = c.code;
+  const depCount = {};
+  for(const c of DECK.cards){
+    for(const rid of (c.requires || [])){
+      const rcode = idToCode[rid];
+      if(rcode) depCount[rcode] = (depCount[rcode] || 0) + 1;
+    }
+  }
+
+  /* staleness: days since last session on this card */
+  function staleDays(code){
+    const dates = Object.keys(histAll).filter(d => {
+      const recs = histAll[d];
+      return recs && recs.some(r => r.card === code);
+    }).sort();
+    if(!dates.length) return 999;
+    return daysBetween(dates[dates.length - 1], today);
+  }
+
+  const scored = openCards.map(o => {
+    const code = o.card.code;
+    const ac = activeCheck(code);
+    const oneAway = ac && ac.need_sessions > 0 && ac.banked_sessions >= ac.need_sessions - 1 ? 1 : 0;
+    const leverage = depCount[code] || 0;
+    const stale = staleDays(code);
+    return {o, oneAway, leverage, stale};
+  });
+
+  scored.sort((a, b) =>
+    (b.oneAway - a.oneAway) ||
+    (b.leverage - a.leverage) ||
+    (b.stale - a.stale));
+
+  return scored.slice(0, n).map(s => {
+    let why = [];
+    if(s.oneAway) why.push('1 session from banking');
+    if(s.leverage) why.push('unlocks ' + s.leverage + ' card' + (s.leverage>1?'s':''));
+    if(s.stale > 0 && s.stale < 999) why.push(s.stale + 'd since last');
+    return {card: s.o.card, why: why.join(' · ')};
+  });
+}
+
 function slotLine(c, why){
   const k = activeCheck(c.code);
   const eq = [];
@@ -645,9 +698,18 @@ function renderWeek(){
         h += `<div class="live"><b>Logging now:</b> ${live.map(esc).join(' \u00b7 ')} \u2014 in the LOG tab,
           not stored anywhere. Export it and paste it into SESSIONS.md or it never happened.</div>`;
       if(!p.rest){
-        h += `<div class="slot"><span class="lb">OPEN NOW \u2014 computed from state ${esc((DECK.state&&DECK.state.as_of)||'')}</span></div>`;
-        if(open.length) for(const o of open) h += slotLine(o.card, o.why);
-        else h += `<div class="empty">Nothing open. Every track is banked, locked, or stood down.</div>`;
+        const sug = suggest(open, 2);
+        if(sug.length){
+          h += `<div class="slot"><span class="lb">SUGGESTED</span></div>`;
+          for(const s of sug) h += slotLine(s.card, s.why);
+          const rest = open.filter(o => !sug.some(s => s.card.code === o.card.code));
+          if(rest.length){
+            h += `<div class="slot"><span class="lb">ALSO OPEN</span></div>`;
+            for(const o of rest) h += slotLine(o.card, o.why);
+          }
+        } else {
+          h += `<div class="empty">Nothing open. Every track is banked, locked, or stood down.</div>`;
+        }
       }
       for(const sl of ['am','pm']){
         const codes = Array.isArray(p[sl]) ? p[sl] : (p[sl] ? [p[sl]] : []);
