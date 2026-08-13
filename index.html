@@ -119,11 +119,11 @@
   .ribbon .big{font-size:21px; font-weight:800; letter-spacing:.02em;}
   .ribbon .sub{font-size:12px; opacity:.82; flex:1;}
   .expo{font-size:12.5px; color:var(--muted); margin:-4px 2px 10px;}
-  .strip{display:flex; gap:3px; margin-bottom:12px; align-items:center;}
-  .strip i{width:12px; height:12px; border-radius:6px; background:#E2E0D8; display:block; flex:0 0 auto;}
+  .strip{display:flex; gap:2px; margin-bottom:12px; align-items:center;}
+  .strip i{width:8px; height:8px; border-radius:4px; background:#E2E0D8; display:block; flex:0 0 auto;}
   .strip i.w{background:var(--ink);}
-  .strip i.r{background:#fff; border:2px solid var(--line); width:12px; height:12px; border-radius:6px;}
-  .strip i.t{outline:2px solid var(--alert); outline-offset:1px;}
+  .strip i.r{background:#fff; border:2px solid var(--line); width:8px; height:8px; border-radius:4px; box-sizing:border-box;}
+  .strip i.t{outline:2px solid var(--alert); outline-offset:2px;}
   .strip .key{font-size:11px; color:var(--muted); margin-left:auto; letter-spacing:.04em;}
   .wknav{display:flex; gap:12px; margin-bottom:10px;}
   .wknav button{padding:12px 20px; border:1.5px solid var(--line); background:#fff;
@@ -185,7 +185,7 @@
   .field-highlight{animation:fieldFlash .6s ease-out;}
   @keyframes fieldFlash{0%{box-shadow:0 0 0 4px var(--alert);}100%{box-shadow:none;}}
   /* track group header in LOG card picker */
-  .track-group-hdr{font-size:11px; font-weight:800; letter-spacing:.1em; margin:10px 0 2px; padding:2px 4px;}
+  .track-group-hdr{font-size:13px; font-weight:800; letter-spacing:.1em; margin:14px 0 4px; padding:4px 8px; border-left:4px solid; border-radius:2px;}
   /* days since last session */
   .days-since{font-size:13px; color:var(--muted); text-align:center; margin-bottom:10px; padding:6px 0;}
   /* clear confirm state */
@@ -897,12 +897,15 @@ function renderLog(){
     ${S.ended_on==='pressure rep'?'<div class="warn">Standing rule: never end a session on a pressure rep. Logged as it happened.</div>':''}
     <label class="f">Notes</label><textarea id="f_notes">${esc(S.notes)}</textarea></div>`;
 
-  h += `<div id="exportBox"></div><button class="go" onclick="haptic();doExport()">VALIDATE &amp; EXPORT</button>
+  h += `<div id="exportBox"></div><button id="inlineExport" class="go" onclick="haptic();doExport()">VALIDATE &amp; EXPORT</button>
     <div class="subtle">Nothing is stored in this app. The export block pasted into SESSIONS.md is the record.</div>`;
   v.innerHTML = h;
-  /* floating export button visibility */
+  /* floating export button visibility — hide inline when fab is showing */
   const fab = document.getElementById('fabExport');
-  if(fab) fab.classList.toggle('show', Object.keys(S.cards).length > 0 && state.tab==='log');
+  const hasCards = Object.keys(S.cards).length > 0 && state.tab==='log';
+  if(fab) fab.classList.toggle('show', hasCards);
+  const ib = document.getElementById('inlineExport');
+  if(ib) ib.style.display = hasCards ? 'none' : '';
   bind('f_notes',['notes']); bind('f_temp',['temp_f']); bind('f_len',['length_min']);
   bind('f_wt',['water_temp_f']); bind('f_loco',['locOther']); bind('f_date',['date']);
 }
