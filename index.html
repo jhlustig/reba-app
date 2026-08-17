@@ -194,7 +194,7 @@
 <!-- Firebase: using REST API, no SDK needed -->
 </head>
 <body>
-<header><span class="t">REBA</span><span class="b" id="bstamp"></span></header>
+<header><span class="t" id="dogName" onclick="showDogPicker()" style="cursor:pointer">REBA</span><span class="b" id="bstamp"></span></header>
 <nav>
   <button id="tabWeek" class="on" onclick="tab('week')">WEEK</button>
   <button id="tabCards" onclick="tab('cards')">CARDS</button>
@@ -510,6 +510,35 @@ function fsParseValue(v) {
 }
 
 document.getElementById('bstamp').textContent = 'app 0.7.0 · deck ' + DECK.build;
+document.getElementById('dogName').textContent = getActiveDog().toUpperCase();
+
+/* ── Multi-dog / multi-handler ────────────────────────────────────────────── */
+// Dog list and active dog stored in localStorage. Defaults to Reba/Jason.
+const DOG_KEY = 'reba.dogs.v1';
+const ACTIVE_DOG_KEY = 'reba.activeDog';
+const HANDLER_KEY = 'reba.handler';
+
+function getDogs() {
+  try { return JSON.parse(localStorage.getItem(DOG_KEY)) || []; } catch(e) { return []; }
+}
+function saveDogs(dogs) { localStorage.setItem(DOG_KEY, JSON.stringify(dogs)); }
+function getActiveDog() {
+  const name = localStorage.getItem(ACTIVE_DOG_KEY);
+  const dogs = getDogs();
+  if (name && dogs.find(d => d.name === name)) return name;
+  if (dogs.length) { localStorage.setItem(ACTIVE_DOG_KEY, dogs[0].name); return dogs[0].name; }
+  // seed with Reba if no dogs exist
+  const seed = [{ name: 'Reba', breed: 'Golden Retriever' }];
+  saveDogs(seed);
+  localStorage.setItem(ACTIVE_DOG_KEY, 'Reba');
+  return 'Reba';
+}
+function setActiveDog(name) { localStorage.setItem(ACTIVE_DOG_KEY, name); }
+function getHandler() { return localStorage.getItem(HANDLER_KEY) || 'jason'; }
+function setHandler(name) { localStorage.setItem(HANDLER_KEY, name); }
+
+// Ensure at least Reba exists on first load
+getActiveDog();
 
 const TRACKS = [...new Map(DECK.cards.map(c=>[c.track,{tag:c.track,name:c.trackName,color:c.color}])).values()];
 let state = { tab:'week', weekStart:null, dayOpen:null,
@@ -522,6 +551,48 @@ let state = { tab:'week', weekStart:null, dayOpen:null,
    and sorted above the corrections that superseded them. A hardcoded -5 would be
    worse: Central drops to CST on 1 Nov, two weeks before the season opens. Naming
    the zone lets the browser handle CDT/CST itself. */
+function showDogPicker() {
+  const dogs = getDogs();
+  const active = getActiveDog();
+  let h = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center" onclick="this.remove()">';
+  h += '<div style="background:#fff;border-radius:12px;padding:20px;min-width:260px;max-width:90%" onclick="event.stopPropagation()">';
+  h += '<div style="font-weight:700;font-size:16px;margin-bottom:12px">Switch Dog</div>';
+  for (const d of dogs) {
+    const isActive = d.name === active;
+    h += `<div style="padding:10px;border-radius:8px;margin:4px 0;cursor:pointer;${isActive ? 'background:#232720;color:#fff' : 'background:#f3f2ee'}" onclick="switchDog('${d.name}')">${d.name}${isActive ? ' ✓' : ''}</div>`;
+  }
+  h += '<div style="border-top:1px solid #ccc;margin-top:12px;padding-top:12px">';
+  h += '<input id="newDogInput" placeholder="New dog name" style="padding:8px;border:1px solid #ccc;border-radius:6px;width:60%;font-size:14px">';
+  h += ' <button onclick="addDog()" style="padding:8px 14px;border:none;border-radius:6px;background:#232720;color:#fff;font-size:14px;cursor:pointer">Add</button>';
+  h += '</div></div></div>';
+  const el = document.createElement('div');
+  el.innerHTML = h;
+  document.body.appendChild(el.firstChild);
+}
+
+function switchDog(name) {
+  setActiveDog(name);
+  document.getElementById('dogName').textContent = name.toUpperCase();
+  document.querySelector('[onclick*="showDogPicker"]')?.closest('div[style*="position:fixed"]')?.remove();
+  // Clear IndexedDB and recompute for this dog
+  openSessionsDB().then(db => {
+    const tx = db.transaction('rows', 'readwrite');
+    tx.objectStore('rows').clear();
+    tx.oncomplete = () => recomputeState();
+  });
+}
+
+function addDog() {
+  const input = document.getElementById('newDogInput');
+  const name = (input?.value || '').trim();
+  if (!name) return;
+  const dogs = getDogs();
+  if (dogs.find(d => d.name.toLowerCase() === name.toLowerCase())) return;
+  dogs.push({ name, breed: '' });
+  saveDogs(dogs);
+  switchDog(name);
+}
+
 function todayCentral(){
   return new Intl.DateTimeFormat('en-CA', {timeZone:'America/Chicago'}).format(new Date());
 }
@@ -1313,7 +1384,7 @@ function doExport(){
   if(S.length_min) y += `  length_min: ${S.length_min}\n`;
   y += `  helper: ${S.helper}\n  birds: ${S.birds}\n  handler_state: ${S.handler_state}\n`;
   if(S.water_temp_f) y += `  water_temp_f: ${S.water_temp_f}   # ${S.water_temp_kind}\n`;
-  y += `dog_sessions:\n  - dog: ${DECK.dog.toLowerCase()}\n    cards:\n`;
+  y += `dog_sessions:\n  - dog: ${getActiveDog().toLowerCase()}\n    cards:\n`;
   for(const [code,cs] of Object.entries(S.cards)){
     const c = DECK.cards.find(x=>x.code===code);
     y += `      - card: ${code}\n        assist: ${cs.assist}\n`;
@@ -1361,8 +1432,8 @@ function doExport(){
         await idbPutAll(db, sessionRows);
         /* ── fire-and-forget Firestore write (REST, no SDK) ── */
         fsWrite('sessions', {
-          dog: 'reba',
-          handler: 'jason',
+          dog: getActiveDog().toLowerCase(),
+          handler: getHandler(),
           outing: {
             date: S.date,
             tod: S.tod,
@@ -1463,7 +1534,9 @@ recomputeState();
 /* ── Firestore sync on load — merge sessions from other devices (REST) ──── */
 (async function syncFromFirestore() {
   try {
-    const docs = await fsReadAll('sessions');
+    const allDocs = await fsReadAll('sessions');
+    const activeDog = getActiveDog().toLowerCase();
+    const docs = allDocs.filter(d => (d.dog || '').toLowerCase() === activeDog);
     if (!docs.length) return;
     const db = await openSessionsDB();
     const existing = await idbGetAll(db);
