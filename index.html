@@ -455,15 +455,18 @@ async function recomputeState() {
 }
 
 /* ── Firebase / Firestore ─────────────────────────────────────────────────── */
-firebase.initializeApp({
-  apiKey: "AIzaSyDUL6hF8_W-ysx_3uSlqhNL-AYazzNj9BI",
-  authDomain: "reba-training-app.firebaseapp.com",
-  projectId: "reba-training-app",
-  storageBucket: "reba-training-app.firebasestorage.app",
-  messagingSenderId: "156095320160",
-  appId: "1:156095320160:web:53ea1baa72ab6fc27c3305"
-});
-const db_fs = firebase.firestore();
+let db_fs = null;
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyDUL6hF8_W-ysx_3uSlqhNL-AYazzNj9BI",
+    authDomain: "reba-training-app.firebaseapp.com",
+    projectId: "reba-training-app",
+    storageBucket: "reba-training-app.firebasestorage.app",
+    messagingSenderId: "156095320160",
+    appId: "1:156095320160:web:53ea1baa72ab6fc27c3305"
+  });
+  db_fs = firebase.firestore();
+} catch(e) { console.warn('Firebase init failed:', e); }
 
 document.getElementById('bstamp').textContent = 'app 0.7.0 · deck ' + DECK.build;
 
@@ -1316,40 +1319,53 @@ function doExport(){
         const db = await openSessionsDB();
         await idbPutAll(db, sessionRows);
         /* ── fire-and-forget Firestore write ── */
-        db_fs.collection('sessions').add({
-          dog: 'reba',
-          handler: 'jason',
-          outing: {
-            date: S.date,
-            tod: S.tod,
-            location: S.location === 'Other' ? (S.locOther || 'other') : S.location,
-            new_site: S.new_site,
-            new_ground: S.new_ground,
-            helper: S.helper,
-            birds: S.birds,
-            handler_state: S.handler_state,
-            temp_f: S.temp_f || null,
-            length_min: S.length_min || null,
-            water_temp_f: S.water_temp_f || null,
-            water_temp_kind: S.water_temp_kind || null,
-          },
-          cards: Object.entries(S.cards).map(([code, cs]) => {
-            const c = DECK.cards.find(x => x.code === code);
-            return {
-              card: code,
-              assist: cs.assist,
-              rung: cs.rung !== '' ? Number(cs.rung) : null,
-              dog_state: cs.dog_state || null,
-              observed: cs.observed || null,
-              checks: Object.entries(cs.checks).map(([id, ck]) => {
-                const spec = c.checks.find(k => k.id === id);
-                return { id, hits: Number(ck.hits), of: spec.of, counts: cs.assist === 'none' };
-              }),
-            };
-          }),
-          deck_build: DECK.build,
-          created_at: firebase.firestore.FieldValue.serverTimestamp(),
-        }).catch(e => console.error('Firestore write failed:', e));
+        if (db_fs) {
+          db_fs.collection('sessions').add({
+            dog: 'reba',
+            handler: 'jason',
+            outing: {
+              date: S.date,
+              tod: S.tod,
+              location: S.location === 'Other' ? (S.locOther || 'other') : S.location,
+              new_site: S.new_site,
+              new_ground: S.new_ground,
+              helper: S.helper,
+              birds: S.birds,
+              handler_state: S.handler_state,
+              temp_f: S.temp_f || null,
+              length_min: S.length_min || null,
+              water_temp_f: S.water_temp_f || null,
+              water_temp_kind: S.water_temp_kind || null,
+            },
+            cards: Object.entries(S.cards).map(([code, cs]) => {
+              const c = DECK.cards.find(x => x.code === code);
+              return {
+                card: code,
+                assist: cs.assist,
+                rung: cs.rung !== '' ? Number(cs.rung) : null,
+                dog_state: cs.dog_state || null,
+                observed: cs.observed || null,
+                checks: Object.entries(cs.checks).map(([id, ck]) => {
+                  const spec = c.checks.find(k => k.id === id);
+                  return { id, hits: Number(ck.hits), of: spec.of, counts: cs.assist === 'none' };
+                }),
+              };
+            }),
+            deck_build: DECK.build,
+            created_at: firebase.firestore.FieldValue.serverTimestamp(),
+          }).then(() => {
+            const t = document.createElement('div');
+            t.textContent = 'Synced to cloud';
+            t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#2E7D4F;color:#fff;padding:6px 16px;border-radius:8px;z-index:999;font-size:13px;';
+            document.body.appendChild(t); setTimeout(() => t.remove(), 2000);
+          }).catch(e => {
+            const t = document.createElement('div');
+            t.textContent = 'Cloud sync failed: ' + e.message;
+            t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#A32E1E;color:#fff;padding:6px 16px;border-radius:8px;z-index:999;font-size:13px;max-width:90%;';
+            document.body.appendChild(t); setTimeout(() => t.remove(), 5000);
+            console.error('Firestore write failed:', e);
+          });
+        }
         await recomputeState();
         const note = document.createElement('div');
         note.textContent = 'State updated';
