@@ -191,9 +191,7 @@
   /* clear confirm state */
   .copy.confirm-warn{background:#D4440A; color:#fff; border-color:#D4440A;}
 </style>
-<!-- Firebase JS SDK (compat) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<!-- Firebase: using REST API, no SDK needed -->
 </head>
 <body>
 <header><span class="t">REBA</span><span class="b" id="bstamp"></span></header>
@@ -454,19 +452,62 @@ async function recomputeState() {
   } catch (e) { console.error('recomputeState failed:', e); }
 }
 
-/* ── Firebase / Firestore ─────────────────────────────────────────────────── */
-let db_fs = null;
-try {
-  firebase.initializeApp({
-    apiKey: "AIzaSyDUL6hF8_W-ysx_3uSlqhNL-AYazzNj9BI",
-    authDomain: "reba-training-app.firebaseapp.com",
-    projectId: "reba-training-app",
-    storageBucket: "reba-training-app.firebasestorage.app",
-    messagingSenderId: "156095320160",
-    appId: "1:156095320160:web:53ea1baa72ab6fc27c3305"
+/* ── Firestore REST API — no SDK, just fetch ──────────────────────────────── */
+const FS_PROJECT = 'reba-training-app';
+const FS_API_KEY = 'AIzaSyDUL6hF8_W-ysx_3uSlqhNL-AYazzNj9BI';
+const FS_BASE = 'https://firestore.googleapis.com/v1/projects/' + FS_PROJECT + '/databases/(default)/documents';
+
+function fsDocValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (typeof v === 'string') return { stringValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(fsDocValue) } };
+  if (typeof v === 'object') {
+    const fields = {};
+    for (const [k, val] of Object.entries(v)) fields[k] = fsDocValue(val);
+    return { mapValue: { fields } };
+  }
+  return { stringValue: String(v) };
+}
+
+function fsWrite(collection, data) {
+  const fields = {};
+  for (const [k, v] of Object.entries(data)) fields[k] = fsDocValue(v);
+  // Add server timestamp
+  fields.created_at = { timestampValue: new Date().toISOString() };
+  return fetch(FS_BASE + '/' + collection + '?key=' + FS_API_KEY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
   });
-  db_fs = firebase.firestore();
-} catch(e) { console.warn('Firebase init failed:', e); }
+}
+
+function fsReadAll(collection) {
+  return fetch(FS_BASE + '/' + collection + '?key=' + FS_API_KEY + '&pageSize=500')
+    .then(r => r.json())
+    .then(data => (data.documents || []).map(doc => {
+      const out = {};
+      for (const [k, v] of Object.entries(doc.fields || {})) out[k] = fsParseValue(v);
+      return out;
+    }));
+}
+
+function fsParseValue(v) {
+  if ('stringValue' in v) return v.stringValue;
+  if ('integerValue' in v) return parseInt(v.integerValue, 10);
+  if ('doubleValue' in v) return v.doubleValue;
+  if ('booleanValue' in v) return v.booleanValue;
+  if ('nullValue' in v) return null;
+  if ('timestampValue' in v) return v.timestampValue;
+  if ('arrayValue' in v) return (v.arrayValue.values || []).map(fsParseValue);
+  if ('mapValue' in v) {
+    const out = {};
+    for (const [k, fv] of Object.entries(v.mapValue.fields || {})) out[k] = fsParseValue(fv);
+    return out;
+  }
+  return null;
+}
 
 document.getElementById('bstamp').textContent = 'app 0.7.0 · deck ' + DECK.build;
 
@@ -1318,54 +1359,57 @@ function doExport(){
       if (sessionRows.length) {
         const db = await openSessionsDB();
         await idbPutAll(db, sessionRows);
-        /* ── fire-and-forget Firestore write ── */
-        if (db_fs) {
-          db_fs.collection('sessions').add({
-            dog: 'reba',
-            handler: 'jason',
-            outing: {
-              date: S.date,
-              tod: S.tod,
-              location: S.location === 'Other' ? (S.locOther || 'other') : S.location,
-              new_site: S.new_site,
-              new_ground: S.new_ground,
-              helper: S.helper,
-              birds: S.birds,
-              handler_state: S.handler_state,
-              temp_f: S.temp_f || null,
-              length_min: S.length_min || null,
-              water_temp_f: S.water_temp_f || null,
-              water_temp_kind: S.water_temp_kind || null,
-            },
-            cards: Object.entries(S.cards).map(([code, cs]) => {
-              const c = DECK.cards.find(x => x.code === code);
-              return {
-                card: code,
-                assist: cs.assist,
-                rung: cs.rung !== '' ? Number(cs.rung) : null,
-                dog_state: cs.dog_state || null,
-                observed: cs.observed || null,
-                checks: Object.entries(cs.checks).map(([id, ck]) => {
-                  const spec = c.checks.find(k => k.id === id);
-                  return { id, hits: Number(ck.hits), of: spec.of, counts: cs.assist === 'none' };
-                }),
-              };
-            }),
-            deck_build: DECK.build,
-            created_at: firebase.firestore.FieldValue.serverTimestamp(),
-          }).then(() => {
+        /* ── fire-and-forget Firestore write (REST, no SDK) ── */
+        fsWrite('sessions', {
+          dog: 'reba',
+          handler: 'jason',
+          outing: {
+            date: S.date,
+            tod: S.tod,
+            location: S.location === 'Other' ? (S.locOther || 'other') : S.location,
+            new_site: S.new_site,
+            new_ground: S.new_ground,
+            helper: S.helper,
+            birds: S.birds,
+            handler_state: S.handler_state,
+            temp_f: S.temp_f || null,
+            length_min: S.length_min || null,
+            water_temp_f: S.water_temp_f || null,
+            water_temp_kind: S.water_temp_kind || null,
+          },
+          cards: Object.entries(S.cards).map(([code, cs]) => {
+            const c = DECK.cards.find(x => x.code === code);
+            return {
+              card: code,
+              assist: cs.assist,
+              rung: cs.rung !== '' ? Number(cs.rung) : null,
+              dog_state: cs.dog_state || null,
+              observed: cs.observed || null,
+              checks: Object.entries(cs.checks).map(([id, ck]) => {
+                const spec = c.checks.find(k => k.id === id);
+                return { id, hits: Number(ck.hits), of: spec ? spec.of : 10, counts: cs.assist === 'none' };
+              }),
+            };
+          }),
+          deck_build: DECK.build,
+        }).then(r => {
+          if (r.ok) {
             const t = document.createElement('div');
             t.textContent = 'Synced to cloud';
             t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#2E7D4F;color:#fff;padding:6px 16px;border-radius:8px;z-index:999;font-size:13px;';
             document.body.appendChild(t); setTimeout(() => t.remove(), 2000);
-          }).catch(e => {
-            const t = document.createElement('div');
-            t.textContent = 'Cloud sync failed: ' + e.message;
-            t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#A32E1E;color:#fff;padding:6px 16px;border-radius:8px;z-index:999;font-size:13px;max-width:90%;';
-            document.body.appendChild(t); setTimeout(() => t.remove(), 5000);
-            console.error('Firestore write failed:', e);
-          });
-        }
+          } else {
+            r.text().then(txt => {
+              const t = document.createElement('div');
+              t.textContent = 'Cloud sync failed: ' + r.status;
+              t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#A32E1E;color:#fff;padding:6px 16px;border-radius:8px;z-index:999;font-size:13px;max-width:90%;';
+              document.body.appendChild(t); setTimeout(() => t.remove(), 5000);
+              console.error('Firestore REST error:', r.status, txt);
+            });
+          }
+        }).catch(e => {
+          console.warn('Firestore offline, will retry later:', e);
+        });
         await recomputeState();
         const note = document.createElement('div');
         note.textContent = 'State updated';
@@ -1416,23 +1460,17 @@ render();
 /* Overlay any sessions logged since the last build */
 recomputeState();
 
-/* ── Firestore sync on load — merge sessions from other devices ──────────── */
+/* ── Firestore sync on load — merge sessions from other devices (REST) ──── */
 (async function syncFromFirestore() {
   try {
-    const snap = await db_fs.collection('sessions')
-      .where('dog', '==', 'reba')
-      .orderBy('created_at', 'desc')
-      .limit(200)
-      .get();
-    if (snap.empty) return;
+    const docs = await fsReadAll('sessions');
+    if (!docs.length) return;
     const db = await openSessionsDB();
     const existing = await idbGetAll(db);
-    /* Build a set of composite keys already in IndexedDB so we don't double-insert */
     const seen = new Set(existing.map(r => `${r.date}|${r.card}|${r.check}`));
     const toMerge = [];
-    snap.forEach(doc => {
-      const d = doc.data();
-      if (!d.outing || !d.cards) return;
+    for (const d of docs) {
+      if (!d.outing || !d.cards) continue;
       const date = d.outing.date;
       for (const cs of d.cards) {
         for (const ck of (cs.checks || [])) {
@@ -1449,12 +1487,12 @@ recomputeState();
           }
         }
       }
-    });
+    }
     if (toMerge.length) {
       await idbPutAll(db, toMerge);
       await recomputeState();
     }
-  } catch (e) { console.error('Firestore sync failed (offline?):', e); }
+  } catch (e) { console.warn('Firestore sync skipped (offline?):', e); }
 })();
 
 /* ---------- pull to refresh — CARDS AND WEEK ONLY ----------
