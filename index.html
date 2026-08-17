@@ -191,6 +191,9 @@
   /* clear confirm state */
   .copy.confirm-warn{background:#D4440A; color:#fff; border-color:#D4440A;}
 </style>
+<!-- Firebase JS SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <header><span class="t">REBA</span><span class="b" id="bstamp"></span></header>
@@ -451,7 +454,18 @@ async function recomputeState() {
   } catch (e) { console.error('recomputeState failed:', e); }
 }
 
-document.getElementById('bstamp').textContent = 'app 0.6.1 · deck ' + DECK.build;
+/* ── Firebase / Firestore ─────────────────────────────────────────────────── */
+firebase.initializeApp({
+  apiKey: "AIzaSyDUL6hF8_W-ysx_3uSlqhNL-AYazzNj9BI",
+  authDomain: "reba-training-app.firebaseapp.com",
+  projectId: "reba-training-app",
+  storageBucket: "reba-training-app.firebasestorage.app",
+  messagingSenderId: "156095320160",
+  appId: "1:156095320160:web:53ea1baa72ab6fc27c3305"
+});
+const db_fs = firebase.firestore();
+
+document.getElementById('bstamp').textContent = 'app 0.7.0 · deck ' + DECK.build;
 
 const TRACKS = [...new Map(DECK.cards.map(c=>[c.track,{tag:c.track,name:c.trackName,color:c.color}])).values()];
 let state = { tab:'week', weekStart:null, dayOpen:null,
@@ -1301,6 +1315,41 @@ function doExport(){
       if (sessionRows.length) {
         const db = await openSessionsDB();
         await idbPutAll(db, sessionRows);
+        /* ── fire-and-forget Firestore write ── */
+        db_fs.collection('sessions').add({
+          dog: 'reba',
+          handler: 'jason',
+          outing: {
+            date: S.date,
+            tod: S.tod,
+            location: S.location === 'Other' ? (S.locOther || 'other') : S.location,
+            new_site: S.new_site,
+            new_ground: S.new_ground,
+            helper: S.helper,
+            birds: S.birds,
+            handler_state: S.handler_state,
+            temp_f: S.temp_f || null,
+            length_min: S.length_min || null,
+            water_temp_f: S.water_temp_f || null,
+            water_temp_kind: S.water_temp_kind || null,
+          },
+          cards: Object.entries(S.cards).map(([code, cs]) => {
+            const c = DECK.cards.find(x => x.code === code);
+            return {
+              card: code,
+              assist: cs.assist,
+              rung: cs.rung !== '' ? Number(cs.rung) : null,
+              dog_state: cs.dog_state || null,
+              observed: cs.observed || null,
+              checks: Object.entries(cs.checks).map(([id, ck]) => {
+                const spec = c.checks.find(k => k.id === id);
+                return { id, hits: Number(ck.hits), of: spec.of, counts: cs.assist === 'none' };
+              }),
+            };
+          }),
+          deck_build: DECK.build,
+          created_at: firebase.firestore.FieldValue.serverTimestamp(),
+        }).catch(e => console.error('Firestore write failed:', e));
         await recomputeState();
         const note = document.createElement('div');
         note.textContent = 'State updated';
@@ -1350,6 +1399,47 @@ function render(){ renderWeek(); renderCards(); renderTracks(); renderLog(); }
 render();
 /* Overlay any sessions logged since the last build */
 recomputeState();
+
+/* ── Firestore sync on load — merge sessions from other devices ──────────── */
+(async function syncFromFirestore() {
+  try {
+    const snap = await db_fs.collection('sessions')
+      .where('dog', '==', 'reba')
+      .orderBy('created_at', 'desc')
+      .limit(200)
+      .get();
+    if (snap.empty) return;
+    const db = await openSessionsDB();
+    const existing = await idbGetAll(db);
+    /* Build a set of composite keys already in IndexedDB so we don't double-insert */
+    const seen = new Set(existing.map(r => `${r.date}|${r.card}|${r.check}`));
+    const toMerge = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (!d.outing || !d.cards) return;
+      const date = d.outing.date;
+      for (const cs of d.cards) {
+        for (const ck of (cs.checks || [])) {
+          const key = `${date}|${cs.card}|${ck.id}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            toMerge.push({
+              card: cs.card, check: ck.id, date,
+              hits: ck.hits, of: ck.of, counts: ck.counts,
+              assist: cs.assist || 'none',
+              rung: cs.rung != null ? cs.rung : undefined,
+              machine: true, source: 'firestore',
+            });
+          }
+        }
+      }
+    });
+    if (toMerge.length) {
+      await idbPutAll(db, toMerge);
+      await recomputeState();
+    }
+  } catch (e) { console.error('Firestore sync failed (offline?):', e); }
+})();
 
 /* ---------- pull to refresh — CARDS AND WEEK ONLY ----------
    iOS removes the browser's own pull-to-refresh once a PWA runs from the home
