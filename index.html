@@ -510,7 +510,6 @@ function fsParseValue(v) {
 }
 
 document.getElementById('bstamp').textContent = 'app 0.7.0 · deck ' + DECK.build;
-document.getElementById('dogName').textContent = getActiveDog().toUpperCase();
 
 /* ── Multi-dog / multi-handler ────────────────────────────────────────────── */
 // Dog list and active dog stored in localStorage. Defaults to Reba/Jason.
@@ -537,8 +536,9 @@ function setActiveDog(name) { localStorage.setItem(ACTIVE_DOG_KEY, name); }
 function getHandler() { return localStorage.getItem(HANDLER_KEY) || 'jason'; }
 function setHandler(name) { localStorage.setItem(HANDLER_KEY, name); }
 
-// Ensure at least Reba exists on first load
+// Ensure at least Reba exists on first load, then set header
 getActiveDog();
+document.getElementById('dogName').textContent = getActiveDog().toUpperCase();
 
 const TRACKS = [...new Map(DECK.cards.map(c=>[c.track,{tag:c.track,name:c.trackName,color:c.color}])).values()];
 let state = { tab:'week', weekStart:null, dayOpen:null,
