@@ -25,7 +25,7 @@
  * a diagram that is missing the first time it is wanted. 900 KB once, on wifi,
  * buys the whole set offline.
  */
-const CACHE = 'reba-0.7.0-multidog';
+const CACHE = 'reba-0.7.0-idb2';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './icon-180.png',
