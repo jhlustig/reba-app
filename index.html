@@ -561,18 +561,20 @@ let state = { tab:'week', weekStart:null, dayOpen:null,
    worse: Central drops to CST on 1 Nov, two weeks before the season opens. Naming
    the zone lets the browser handle CDT/CST itself. */
 function showDogPicker() {
+  // Remove any existing picker
+  document.getElementById('dogPickerOverlay')?.remove();
   const dogs = getDogs();
   const active = getActiveDog();
-  let h = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center" onclick="this.remove()">';
+  let h = '<div id="dogPickerOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center" onclick="this.remove()">';
   h += '<div style="background:#fff;border-radius:12px;padding:20px;min-width:260px;max-width:90%" onclick="event.stopPropagation()">';
   h += '<div style="font-weight:700;font-size:16px;margin-bottom:12px">Switch Dog</div>';
   for (const d of dogs) {
     const isActive = d.name === active;
-    h += `<div style="padding:10px;border-radius:8px;margin:4px 0;cursor:pointer;${isActive ? 'background:#232720;color:#fff' : 'background:#f3f2ee'}" onclick="switchDog('${d.name}')">${d.name}${isActive ? ' ✓' : ''}</div>`;
+    h += `<div style="padding:10px;border-radius:8px;margin:4px 0;cursor:pointer;${isActive ? 'background:#232720;color:#fff' : 'background:#f3f2ee'}" onclick="haptic();switchDog('${d.name}')">${d.name}${isActive ? ' ✓' : ''}</div>`;
   }
   h += '<div style="border-top:1px solid #ccc;margin-top:12px;padding-top:12px">';
   h += '<input id="newDogInput" placeholder="New dog name" style="padding:8px;border:1px solid #ccc;border-radius:6px;width:60%;font-size:14px">';
-  h += ' <button onclick="addDog()" style="padding:8px 14px;border:none;border-radius:6px;background:#232720;color:#fff;font-size:14px;cursor:pointer">Add</button>';
+  h += ' <button onclick="haptic();addDog()" style="padding:8px 14px;border:none;border-radius:6px;background:#232720;color:#fff;font-size:14px;cursor:pointer">Add</button>';
   h += '</div></div></div>';
   const el = document.createElement('div');
   el.innerHTML = h;
@@ -582,7 +584,8 @@ function showDogPicker() {
 function switchDog(name) {
   setActiveDog(name);
   document.getElementById('dogName').textContent = name.toUpperCase();
-  document.querySelector('[onclick*="showDogPicker"]')?.closest('div[style*="position:fixed"]')?.remove();
+  // Re-render the picker so the active highlight moves
+  showDogPicker();
   // Clear IndexedDB and recompute for this dog
   openSessionsDB().then(db => {
     const tx = db.transaction('rows', 'readwrite');
