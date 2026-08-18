@@ -402,8 +402,17 @@ function computeState(deckCards, rows, asserts, standDowns) {
 /* ── IndexedDB session storage + live state recompute ───────────────────── */
 function openSessionsDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('reba-sessions', 1);
-    req.onupgradeneeded = () => { req.result.createObjectStore('rows', { autoIncrement: true }); };
+    /* Version 2: wipe stale test-harness data from IDB. Version 1 carried
+       229 multi-dog test sessions that made the live recompute show wrong
+       status. Bumping the version triggers onupgradeneeded, which deletes
+       the old store and recreates it empty. Real sessions live in
+       SESSIONS.md and are baked into DECK.state — nothing is lost. */
+    const req = indexedDB.open('reba-sessions', 2);
+    req.onupgradeneeded = (e) => {
+      const db = req.result;
+      if (db.objectStoreNames.contains('rows')) db.deleteObjectStore('rows');
+      db.createObjectStore('rows', { autoIncrement: true });
+    };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
