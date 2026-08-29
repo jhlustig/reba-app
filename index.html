@@ -480,6 +480,25 @@ async function recomputeState() {
     const result = computeState(DECK.cards, allRows, asserts, standDowns);
     const asOf = (DECK.state || {}).as_of || '';
     DECK.state = Object.assign(result, { asserts: asserts, stand_downs: standDowns, as_of: asOf });
+    /* Patch DECK.week.history with IDB rows so the cadence strip, "last
+       session" label, staleness, and day-row history all reflect sessions
+       logged since the last build. */
+    if (idbRows.length) {
+      if (!DECK.week) DECK.week = {};
+      if (!DECK.week.history) DECK.week.history = {};
+      for (const r of idbRows) {
+        if (!r.date || !r.card) continue;
+        if (!DECK.week.history[r.date]) DECK.week.history[r.date] = [];
+        const already = DECK.week.history[r.date].some(
+          h => h.code === r.card && h.check === r.check);
+        if (!already) {
+          DECK.week.history[r.date].push({
+            code: r.card, check: r.check,
+            hits: r.hits, of: r.of, counts: r.counts !== false
+          });
+        }
+      }
+    }
     render();
   } catch (e) { console.error('recomputeState failed:', e); }
 }
@@ -1689,13 +1708,11 @@ function doExport(){
   if(S.arc) y += `    arc: ${S.arc}\n`;
   if(S.ended_on) y += `    ended_on: ${S.ended_on.replace(' ','_')}\n`;
   if(S.notes) y += `    notes: "${S.notes.replace(/"/g,"'")}"\n`;
-  box.innerHTML = `<div class="export"><h3 style="margin:0 0 6px">EXPORT — paste into SESSIONS.md</h3>` +
-    (softs.length ? `<div class="warn">${softs.map(esc).join('<br>')}</div>` : '') +
-    `<pre id="yml">${esc(y)}</pre>
-    <button class="copy" onclick="haptic();navigator.clipboard.writeText(document.getElementById('yml').textContent).then(()=>{haptic();this.textContent='COPIED'})">COPY</button>
-    <button class="copy" id="clearBtn" onclick="confirmClear(this)">PASTED — CLEAR FOR THE NEXT OUTING</button>
-    <div class="subtle">Clear it before the app goes in your pocket. A header left open overnight is what dated three 08-10 blocks as 08-09.</div></div>`;
-  /* ── store session rows in IndexedDB and recompute state ── */
+  /* ── store session rows in IndexedDB, sync to Firestore, recompute, then
+       auto-clear the log so it is ready for the next outing ── */
+  box.innerHTML = `<div class="export" style="text-align:center;padding:24px 0">
+    <div style="font-size:18px;font-weight:800">Saving session\u2026</div></div>`;
+  box.scrollIntoView({behavior:'smooth'});
   (async function(){
     try {
       const sessionRows = [];
@@ -1750,34 +1767,26 @@ function doExport(){
           }),
           deck_build: DECK.build,
         }).then(r => {
-          if (r.ok) {
-            const t = document.createElement('div');
-            t.textContent = 'Synced to cloud';
-            t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#2E7D4F;color:#fff;padding:6px 16px;border-radius:8px;z-index:999;font-size:13px;';
-            document.body.appendChild(t); setTimeout(() => t.remove(), 2000);
-          } else {
-            r.text().then(txt => {
-              const t = document.createElement('div');
-              t.textContent = 'Cloud sync failed: ' + r.status;
-              t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#A32E1E;color:#fff;padding:6px 16px;border-radius:8px;z-index:999;font-size:13px;max-width:90%;';
-              document.body.appendChild(t); setTimeout(() => t.remove(), 5000);
-              console.error('Firestore REST error:', r.status, txt);
-            });
+          if (!r.ok) {
+            r.text().then(txt => console.error('Firestore REST error:', r.status, txt));
           }
         }).catch(e => {
           console.warn('Firestore offline, will retry later:', e);
         });
         await recomputeState();
-        const note = document.createElement('div');
-        note.textContent = 'State updated';
-        note.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:700;z-index:99;opacity:1;transition:opacity .5s;';
-        document.body.appendChild(note);
-        setTimeout(() => { note.style.opacity = '0'; }, 1500);
-        setTimeout(() => { note.remove(); }, 2100);
       }
+      /* auto-clear and show confirmation */
+      newOuting();
+      haptic();
+      const note = document.createElement('div');
+      note.textContent = '\u2714 Session saved — ready for the next outing';
+      note.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#2E7D4F;color:#fff;padding:10px 20px;border-radius:10px;font-size:15px;font-weight:700;z-index:999;opacity:1;transition:opacity .6s;';
+      document.body.appendChild(note);
+      setTimeout(() => { note.style.opacity = '0'; }, 2500);
+      setTimeout(() => { note.remove(); }, 3200);
+      window.scrollTo({top:0, behavior:'smooth'});
     } catch(e) { console.error('Session store failed:', e); }
   })();
-  box.scrollIntoView({behavior:'smooth'});
 }
 
 /* scroll to and highlight a field on validation error tap */
