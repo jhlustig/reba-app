@@ -657,25 +657,25 @@ function detectLocation() {
 window.detectLocation = detectLocation;
 
 function renderGeoResult(r) {
-  const el = document.getElementById('geoResult');
-  if (!el) return;
   if (r.acquiring) {
-    el.innerHTML = '<span style="color:var(--muted)">Acquiring fix\u2026</span>';
+    S.geo_html = '<span style="color:var(--muted)">Acquiring fix\u2026</span>';
+    render();
     return;
   }
   if (r.error) {
-    el.innerHTML = '<span style="color:var(--alert)">' + r.error + '</span>';
+    S.geo_html = '<span style="color:var(--alert)">' + r.error + '</span>';
+    render();
     return;
   }
   if (r.match === 'hit') {
-    el.innerHTML = '<span style="color:#2F4A32;font-weight:700">\u2713 ' + r.site.label +
+    S.geo_html = '<span style="color:#2F4A32;font-weight:700">\u2713 ' + r.site.label +
       '</span> <span style="color:var(--muted);font-size:12px">' + Math.round(r.dist) +
       ' m, fix \u00b1' + Math.round(r.accuracy) + ' m</span>';
   } else if (r.match === 'ambiguous') {
-    el.innerHTML = '<span style="color:#9A7C42;font-weight:700">Multiple matches:</span> ' +
+    S.geo_html = '<span style="color:#9A7C42;font-weight:700">Multiple matches:</span> ' +
       r.sites.map((s, i) => s.label + ' (' + Math.round(r.dists[i]) + ' m)').join(', ');
   } else {
-    el.innerHTML = '<span style="color:var(--muted)">No match — nearest: ' +
+    S.geo_html = '<span style="color:var(--muted)">No match — nearest: ' +
       r.nearest.label + ' at ' + Math.round(r.dist) + ' m</span>';
   }
 }
@@ -818,7 +818,7 @@ let S = {
   temp_f:'', length_min:'', helper:false, birds:false, handler_state:'',
   cards:{},            // code -> {assist, checks:{id:{attempted,hits}}, no_count, no_count_why, modes:[], observed}
   water_temp_f:'', water_temp_kind:'',
-  wx_info:'', wx_color:'',
+  wx_info:'', wx_color:'', geo_html:'',
   arc:'', ended_on:'', notes:''
 };
 const ASSISTS = ['none','lead_foot','check_cord','corridor','feature_one_side','place_board','handler_proximity'];
@@ -1457,7 +1457,7 @@ function newOuting(){
         location:'', locOther:'', new_site:false, new_ground:false,
         temp_f:'', length_min:'', helper:false, birds:false, handler_state:'',
         cards:{}, water_temp_f:'', water_temp_kind:'',
-        wx_info:'', wx_color:'',
+        wx_info:'', wx_color:'', geo_html:'',
         arc:'', ended_on:'', notes:'' };
   render();
 }
@@ -1550,7 +1550,7 @@ function renderLog(){
     <div><label class="f">Length <span class="hint">min</span></label><input type="number" id="f_len" value="${S.length_min}"></div></div>
     <label class="f">AM or PM <span class="req">*</span> <span class="hint">not pre-filled on purpose — a wrong default is worse than a blank</span></label>${chipset(TOD, S.tod, 'setTOD')}
     <label class="f">Location</label>
-    <div style="margin:6px 0 4px"><button class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)" onclick="detectLocation()">📍 WHERE AM I?</button> <span id="geoResult" style="font-size:13px"></span></div>
+    <div style="margin:6px 0 4px"><button class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)" onclick="detectLocation()">📍 WHERE AM I?</button> <span id="geoResult" style="font-size:13px">${S.geo_html}</span></div>
     <div id="wxInfo" style="font-size:13px;font-weight:600;margin:0 0 6px;min-height:18px${S.wx_color ? ';color:'+S.wx_color : ''}">${esc(S.wx_info)}</div>
     ${chipset(LOCS(), S.location, 'setLoc')}
     ${S.location==='Other'?`<input type="text" id="f_loco" placeholder="where" value="${esc(S.locOther)}">`:''}
