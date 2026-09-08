@@ -685,6 +685,9 @@ function renderGeoResult(r) {
 
 /* ── Weather auto-fetch (Open-Meteo, same as reba-lab) ─────────────────── */
 function fetchSessionWeather(lat, lon) {
+  S.wx_info = 'Fetching weather\u2026';
+  S.wx_color = 'var(--muted)';
+  render();
   const vars = 'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m';
   const units = '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FChicago';
   const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(5) +
@@ -710,11 +713,14 @@ function fetchSessionWeather(lat, lon) {
           S.wx_info = info;
           S.wx_color = '#2F4A32';
         }
-        render();
+      } else {
+        S.wx_info = 'No weather data returned';
+        S.wx_color = '#A32E1E';
       }
+      render();
     })
-    .catch(() => {
-      S.wx_info = 'weather unavailable — enter temp manually';
+    .catch(err => {
+      S.wx_info = 'Weather fetch failed: ' + (err.message || 'unknown error');
       S.wx_color = '#A32E1E';
       render();
     });
