@@ -631,16 +631,19 @@ function detectLocation() {
     p => {
       lastGeoFix = p;
       const result = matchSite(p.coords.latitude, p.coords.longitude);
-      result.accuracy = p.coords.accuracy;
-      result.lat = p.coords.latitude;
-      result.lon = p.coords.longitude;
-      renderGeoResult(result);
-      // Auto-set location if we got a clean match
-      if (result.match === 'hit') {
-        S.location = result.site.label;
-        // Also fetch weather
-        fetchSessionWeather(p.coords.latitude, p.coords.longitude);
+      if (result) {
+        result.accuracy = p.coords.accuracy;
+        result.lat = p.coords.latitude;
+        result.lon = p.coords.longitude;
+        renderGeoResult(result);
+        if (result.match === 'hit') {
+          S.location = result.site.label;
+        }
+      } else {
+        renderGeoResult({ error: 'Sites still loading — try again in a moment.' });
       }
+      // Always fetch weather when we have a GPS fix
+      fetchSessionWeather(p.coords.latitude, p.coords.longitude);
       render();
     },
     e => {
