@@ -25,7 +25,7 @@
  * a diagram that is missing the first time it is wanted. 900 KB once, on wifi,
  * buys the whole set offline.
  */
-const CACHE = 'reba-0.7.0-idb2';
+const CACHE = 'reba-0.8.1-idb2';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './icon-180.png',
@@ -52,10 +52,14 @@ self.addEventListener('fetch', e => {
       const cp = r.clone(); caches.open(CACHE).then(c => c.put('./index.html', cp));
       return r;
     }).catch(() => caches.match('./index.html', {ignoreSearch: true})));
-  } else {
+  } else if (e.request.url.startsWith(self.location.origin)) {
+    // Cache-first for same-origin assets (icons, diagrams, manifest)
     e.respondWith(caches.match(e.request, {ignoreSearch: true}).then(hit => hit || fetch(e.request).then(r => {
       if (r.ok && e.request.method === 'GET') { const cp = r.clone(); caches.open(CACHE).then(c => c.put(e.request, cp)); }
       return r;
     })));
+  } else {
+    // External API calls (Open-Meteo, Firestore): always network, never cache
+    e.respondWith(fetch(e.request));
   }
 });

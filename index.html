@@ -691,30 +691,30 @@ function fetchSessionWeather(lat, lon) {
     .then(data => {
       if (data.current && data.current.temperature_2m != null) {
         S.temp_f = String(Math.round(data.current.temperature_2m));
-        const el = document.getElementById('wxInfo');
-        if (el) {
-          const c = data.current;
-          const feels = c.apparent_temperature != null ? Math.round(c.apparent_temperature) : null;
-          let info = Math.round(c.temperature_2m) + '\u00b0F';
-          if (feels != null && Math.abs(feels - Math.round(c.temperature_2m)) >= 3)
-            info += ' (feels ' + feels + '\u00b0)';
-          if (c.wind_speed_10m) info += ', wind ' + Math.round(c.wind_speed_10m) + ' mph';
-          // Heat warning for the dog
-          if (feels != null && feels >= 90) {
-            info = '\u26a0\ufe0f ' + info + ' — LIMIT WORK';
-            el.style.color = '#A32E1E';
-          } else if (feels != null && feels >= 80) {
-            info = info + ' — shorter sessions';
-            el.style.color = '#B8860B';
-          } else {
-            el.style.color = '#2F4A32';
-          }
-          el.textContent = info;
+        const c = data.current;
+        const feels = c.apparent_temperature != null ? Math.round(c.apparent_temperature) : null;
+        let info = Math.round(c.temperature_2m) + '\u00b0F';
+        if (feels != null && Math.abs(feels - Math.round(c.temperature_2m)) >= 3)
+          info += ' (feels ' + feels + '\u00b0)';
+        if (c.wind_speed_10m) info += ', wind ' + Math.round(c.wind_speed_10m) + ' mph';
+        if (feels != null && feels >= 90) {
+          S.wx_info = '\u26a0\ufe0f ' + info + ' — LIMIT WORK';
+          S.wx_color = '#A32E1E';
+        } else if (feels != null && feels >= 80) {
+          S.wx_info = info + ' — shorter sessions';
+          S.wx_color = '#B8860B';
+        } else {
+          S.wx_info = info;
+          S.wx_color = '#2F4A32';
         }
         render();
       }
     })
-    .catch(() => {}); // fail silently — manual entry is always there
+    .catch(() => {
+      S.wx_info = 'weather unavailable — enter temp manually';
+      S.wx_color = '#A32E1E';
+      render();
+    });
 }
 
 // Also fetch weather when location is tapped manually (if we know coords)
@@ -818,6 +818,7 @@ let S = {
   temp_f:'', length_min:'', helper:false, birds:false, handler_state:'',
   cards:{},            // code -> {assist, checks:{id:{attempted,hits}}, no_count, no_count_why, modes:[], observed}
   water_temp_f:'', water_temp_kind:'',
+  wx_info:'', wx_color:'',
   arc:'', ended_on:'', notes:''
 };
 const ASSISTS = ['none','lead_foot','check_cord','corridor','feature_one_side','place_board','handler_proximity'];
@@ -1456,6 +1457,7 @@ function newOuting(){
         location:'', locOther:'', new_site:false, new_ground:false,
         temp_f:'', length_min:'', helper:false, birds:false, handler_state:'',
         cards:{}, water_temp_f:'', water_temp_kind:'',
+        wx_info:'', wx_color:'',
         arc:'', ended_on:'', notes:'' };
   render();
 }
@@ -1549,7 +1551,7 @@ function renderLog(){
     <label class="f">AM or PM <span class="req">*</span> <span class="hint">not pre-filled on purpose — a wrong default is worse than a blank</span></label>${chipset(TOD, S.tod, 'setTOD')}
     <label class="f">Location</label>
     <div style="margin:6px 0 4px"><button class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)" onclick="detectLocation()">📍 WHERE AM I?</button> <span id="geoResult" style="font-size:13px"></span></div>
-    <div id="wxInfo" style="font-size:13px;font-weight:600;margin:0 0 6px;min-height:18px"></div>
+    <div id="wxInfo" style="font-size:13px;font-weight:600;margin:0 0 6px;min-height:18px${S.wx_color ? ';color:'+S.wx_color : ''}">${esc(S.wx_info)}</div>
     ${chipset(LOCS(), S.location, 'setLoc')}
     ${S.location==='Other'?`<input type="text" id="f_loco" placeholder="where" value="${esc(S.locOther)}">`:''}
     <label class="f">New to whom? <span class="hint">site = new place for you · ground = new footing/area for HER</span></label>
@@ -1639,7 +1641,7 @@ function renderLog(){
     <label class="f">Notes</label><textarea id="f_notes">${esc(S.notes)}</textarea></div>`;
 
   h += `<div id="exportBox"></div><button id="inlineExport" class="go" onclick="haptic();doExport()">VALIDATE &amp; EXPORT</button>
-    <div class="subtle">Nothing is stored in this app. The export block pasted into SESSIONS.md is the record.</div>`;
+    <div class="subtle">Session history is stored on this device (IndexedDB). The export block pasted into SESSIONS.md is the primary record.</div>`;
   v.innerHTML = h;
   /* floating export button visibility — hide inline when fab is showing */
   const fab = document.getElementById('fabExport');
