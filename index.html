@@ -693,34 +693,43 @@ function fetchSessionWeather(lat, lon) {
   const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(5) +
     '&longitude=' + lon.toFixed(5) + '&current=' + vars + units;
   fetch(url)
-    .then(r => r.json())
+    .then(r => {
+      S.wx_info = 'Got response ' + r.status + '\u2026';
+      render();
+      return r.json();
+    })
     .then(data => {
-      if (data.current && data.current.temperature_2m != null) {
-        S.temp_f = String(Math.round(data.current.temperature_2m));
-        const c = data.current;
-        const feels = c.apparent_temperature != null ? Math.round(c.apparent_temperature) : null;
-        let info = Math.round(c.temperature_2m) + '\u00b0F';
-        if (feels != null && Math.abs(feels - Math.round(c.temperature_2m)) >= 3)
-          info += ' (feels ' + feels + '\u00b0)';
-        if (c.wind_speed_10m) info += ', wind ' + Math.round(c.wind_speed_10m) + ' mph';
-        if (feels != null && feels >= 90) {
-          S.wx_info = '\u26a0\ufe0f ' + info + ' — LIMIT WORK';
-          S.wx_color = '#A32E1E';
-        } else if (feels != null && feels >= 80) {
-          S.wx_info = info + ' — shorter sessions';
-          S.wx_color = '#B8860B';
+      try {
+        if (data.current && data.current.temperature_2m != null) {
+          S.temp_f = String(Math.round(data.current.temperature_2m));
+          const c = data.current;
+          const feels = c.apparent_temperature != null ? Math.round(c.apparent_temperature) : null;
+          let info = Math.round(c.temperature_2m) + '\u00b0F';
+          if (feels != null && Math.abs(feels - Math.round(c.temperature_2m)) >= 3)
+            info += ' (feels ' + feels + '\u00b0)';
+          if (c.wind_speed_10m) info += ', wind ' + Math.round(c.wind_speed_10m) + ' mph';
+          if (feels != null && feels >= 90) {
+            S.wx_info = '\u26a0\ufe0f ' + info + ' — LIMIT WORK';
+            S.wx_color = '#A32E1E';
+          } else if (feels != null && feels >= 80) {
+            S.wx_info = info + ' — shorter sessions';
+            S.wx_color = '#B8860B';
+          } else {
+            S.wx_info = info;
+            S.wx_color = '#2F4A32';
+          }
         } else {
-          S.wx_info = info;
-          S.wx_color = '#2F4A32';
+          S.wx_info = 'No weather data in response';
+          S.wx_color = '#A32E1E';
         }
-      } else {
-        S.wx_info = 'No weather data returned';
+      } catch(e) {
+        S.wx_info = 'Parse error: ' + e.message;
         S.wx_color = '#A32E1E';
       }
       render();
     })
     .catch(err => {
-      S.wx_info = 'Weather fetch failed: ' + (err.message || 'unknown error');
+      S.wx_info = 'Weather failed: ' + (err.message || String(err));
       S.wx_color = '#A32E1E';
       render();
     });
