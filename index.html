@@ -26,28 +26,33 @@
   /* ── screens ── */
   .screen{min-height:100vh; min-height:100dvh;}
   /* ── home screen ── */
-  .home-header{padding:56px 20px 12px; display:flex; justify-content:space-between; align-items:baseline;}
-  .home-title{font-size:34px; font-weight:800; letter-spacing:-.02em;}
-  .home-build{font-size:12px; color:var(--muted);}
-  .home-dogs{display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 16px 40px;}
+  .home-banner{padding:60px 20px 20px; padding-top:calc(60px + env(safe-area-inset-top));
+               background:linear-gradient(135deg, rgba(91,140,90,.85), rgba(47,74,50,.9));
+               border-radius:0 0 24px 24px; margin-bottom:20px;
+               box-shadow:0 4px 16px rgba(0,0,0,.4);}
+  .home-title{font-size:32px; font-weight:800; letter-spacing:-.02em; color:#fff;}
+  .home-subtitle{font-size:14px; font-weight:600; letter-spacing:.08em; color:rgba(255,255,255,.7); margin-top:2px;}
+  .home-build{font-size:11px; color:rgba(255,255,255,.4); margin-top:8px;}
+  .home-dogs{display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:0 16px 40px;}
   .dog-card{display:flex; flex-direction:column; align-items:center; justify-content:center;
-            gap:8px; background:var(--card); border-radius:16px; padding:16px 10px 14px;
-            box-shadow:0 2px 8px rgba(0,0,0,.3); cursor:pointer;
+            gap:10px; background:rgba(47,74,50,.75); border-radius:16px; padding:22px 14px 18px;
+            box-shadow:0 2px 8px rgba(0,0,0,.3); cursor:pointer; color:#fff;
             transition:transform .1s ease;}
-  .dog-card:active{transform:scale(.97);}
-  .dog-avatar{width:72px; height:72px; border-radius:50%; background:#3A3A36;
+  .dog-card:active{transform:scale(.95);}
+  .dog-avatar{width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,.15);
               display:flex; align-items:center; justify-content:center;
-              font-size:30px; overflow:hidden; flex-shrink:0; color:var(--muted);}
+              font-size:32px; overflow:hidden; flex-shrink:0; color:rgba(255,255,255,.6);
+              border:3px solid rgba(255,255,255,.25);}
   .dog-avatar img{width:100%; height:100%; object-fit:cover;}
   .dog-info{text-align:center; min-width:0; width:100%; overflow:hidden;}
-  .dog-name{font-size:16px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .dog-status{font-size:11px; color:var(--muted); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .dog-name{font-size:17px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .dog-status{font-size:11px; color:rgba(255,255,255,.6); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .dog-add{display:flex; align-items:center; justify-content:center; gap:8px;
-           background:none; border:2px dashed #3A3A36; border-radius:16px;
-           padding:16px; color:var(--muted); font-size:14px;
+           background:none; border:2px dashed rgba(255,255,255,.2); border-radius:16px;
+           padding:22px; color:rgba(255,255,255,.4); font-size:14px;
            font-weight:600; cursor:pointer; width:100%;
            transition:transform .1s ease;}
-  .dog-add:active{transform:scale(.97);}
+  .dog-add:active{transform:scale(.95);}
   /* ── hub screen ── */
   .hub-bar{position:sticky; top:0; z-index:10; display:flex; align-items:center;
            gap:10px; padding:8px 12px; padding-top:calc(8px + env(safe-area-inset-top));
@@ -314,8 +319,9 @@
 
 <!-- ── Screen: Home (dog selector) ──────────────────────────────────────── -->
 <div id="scrHome" class="screen">
-  <div class="home-header">
-    <div class="home-title">Dogs</div>
+  <div class="home-banner">
+    <div class="home-title">Reba Log</div>
+    <div class="home-subtitle">Gun Dog Program</div>
     <div class="home-build" id="bstamp"></div>
   </div>
   <div id="dogList" class="home-dogs"></div>
@@ -935,7 +941,7 @@ function setActiveDog(name) { localStorage.setItem(ACTIVE_DOG_KEY, name); }
 function getHandler() { return localStorage.getItem(HANDLER_KEY) || 'jason'; }
 function setHandler(name) { localStorage.setItem(HANDLER_KEY, name); }
 
-/* ── Dog photos (base64 in localStorage) ──────────────────────────────────── */
+/* ── Dog photos (localStorage + Firestore for persistence across reinstalls) ── */
 function getDogPhotos() {
   try { return JSON.parse(localStorage.getItem(DOG_PHOTO_KEY)) || {}; } catch(e) { return {}; }
 }
@@ -943,12 +949,35 @@ function setDogPhoto(name, dataUrl) {
   const photos = getDogPhotos();
   photos[name] = dataUrl;
   localStorage.setItem(DOG_PHOTO_KEY, JSON.stringify(photos));
+  /* persist to Firestore so photo survives app reinstall */
+  fsWrite('dog_photos', { dog: name.toLowerCase(), photo: dataUrl, handler: getHandler() })
+    .catch(e => console.warn('Photo cloud save failed:', e));
 }
 function dogAvatarHTML(name, size) {
   const photos = getDogPhotos();
   const url = photos[name];
   if (url) return `<img src="${url}" alt="${esc(name)}">`;
   return name.charAt(0).toUpperCase();
+}
+/* restore photos from Firestore if localStorage is empty (reinstall) */
+function syncDogPhotos() {
+  const existing = getDogPhotos();
+  if (Object.keys(existing).length > 0) return; /* already have photos locally */
+  fsReadAll('dog_photos').then(docs => {
+    if (!docs.length) return;
+    const photos = {};
+    /* keep the newest photo per dog (latest created_at) */
+    for (const d of docs) {
+      const name = (d.dog || '').toLowerCase();
+      if (!name || !d.photo) continue;
+      photos[name.charAt(0).toUpperCase() + name.slice(1)] = d.photo;
+    }
+    if (Object.keys(photos).length) {
+      localStorage.setItem(DOG_PHOTO_KEY, JSON.stringify(photos));
+      renderHome();
+      renderHub();
+    }
+  }).catch(e => console.warn('Photo sync skipped:', e));
 }
 
 getActiveDog();
@@ -2684,6 +2713,7 @@ function render(){ renderWeek(); renderCards(); renderTracks(); renderLog(); }
 
 /* ── Boot: show home screen, then load data in background ──────────────── */
 renderHome();
+syncDogPhotos();
 recomputeState();
 
 /* ── Firestore sync on load — merge sessions from other devices (REST) ──── */
