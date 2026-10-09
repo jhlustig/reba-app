@@ -2390,10 +2390,9 @@ function renderLog(){
   const today = todayCentral();
   if(S.date !== today){
     h += `<div class="warn"><b>This header is dated ${esc(S.date)}. Today is ${today}.</b><br>
-      An outing header left open overnight is what stamped three 08-10 sessions as 08-09.
       <div style="margin-top:8px"><button class="chip" style="background:var(--alert)" onclick="useToday()">USE ${today}</button>
-      <button class="chip" onclick="newOuting()">START A NEW OUTING</button></div>
-      Keep the old date only if you are deliberately logging an earlier session.</div>`;
+      <button class="chip" onclick="newOuting()">START FRESH</button>
+      <button class="chip" style="background:var(--accent)" onclick="haptic();this.parentElement.parentElement.remove()">KEEP ${esc(S.date)}</button></div></div>`;
   }
 
   h += `<div class="fs"><h3>1 · BEFORE — outing context</h3>
@@ -2515,7 +2514,6 @@ function doExport(){
   if(wa && !S.water_temp_f) miss.push({msg:'water temp — required on water outings', anchor:'f_wt'});
   if(wa && S.water_temp_f && !S.water_temp_kind) miss.push({msg:'water temp: reading or estimate?', anchor:'f_wt'});
   const today = todayCentral();
-  if(S.date !== today) miss.push({msg:`header dated ${S.date}, today is ${today} — use the banner at the top to fix it, or keep it deliberately`, anchor:'f_date'});
   for(const [code,cs] of Object.entries(S.cards)){
     for(const [id,ck] of Object.entries(cs.checks))
       if(ck.hits==='') miss.push({msg:`${code} ${id}: hits count — required, not skippable`, anchor:`hits_${code}_${id}`});
@@ -2525,6 +2523,7 @@ function doExport(){
     if(!cs.dog_state) miss.push({msg:`${code}: her state for this block`, anchor:null});
   }
   const softs = [];
+  if(S.date !== today) softs.push(`logging for ${S.date}, not today (${today})`);
   const hr = parseInt(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Chicago',hour:'2-digit',hour12:false}).format(new Date()),10);
   if(S.date===today && S.tod==='AM' && hr>=12) softs.push(`logged AM but it is ${hr}:00 Central — right if you are writing up this morning, wrong if this was the evening block`);
   if(S.date===today && S.tod==='PM' && hr<12) softs.push(`logged PM but it is ${hr}:00 Central — check the date and the half`);
