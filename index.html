@@ -35,7 +35,7 @@
   .home-build{font-size:11px; color:rgba(255,255,255,.4); margin-top:8px;}
   .home-dogs{display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:0 16px 40px;}
   .dog-card{display:flex; flex-direction:column; align-items:center; justify-content:center;
-            gap:10px; background:rgba(47,74,50,.75); border-radius:16px; padding:22px 14px 18px;
+            gap:10px; border-radius:16px; padding:22px 14px 18px;
             box-shadow:0 2px 8px rgba(0,0,0,.3); cursor:pointer; color:#fff;
             transition:transform .1s ease;}
   .dog-card:active{transform:scale(.95);}
@@ -1047,14 +1047,26 @@ function selectDog(name) {
 window.selectDog = selectDog;
 
 /* ── Home screen renderer ──────────────────────────────────────────────── */
+const DOG_COLORS = [
+  'rgba(140,59,42,.75)',    /* rust */
+  'rgba(63,90,107,.75)',    /* slate */
+  'rgba(122,82,64,.75)',    /* clay */
+  'rgba(59,66,110,.75)',    /* indigo */
+  'rgba(106,59,88,.75)',    /* plum */
+  'rgba(107,106,47,.75)',   /* olive */
+  'rgba(44,91,87,.75)',     /* teal */
+  'rgba(140,100,42,.75)',   /* amber */
+];
 function renderHome() {
   const el = document.getElementById('dogList');
   const dogs = getDogs();
   const ST = DECK.state || {};
   let h = '';
-  for (const d of dogs) {
+  for (let i = 0; i < dogs.length; i++) {
+    const d = dogs[i];
+    const color = DOG_COLORS[i % DOG_COLORS.length];
     const current = ST.tracks ? Object.values(ST.tracks).map(t => t.current).filter(Boolean).join(', ') : '';
-    h += `<div class="dog-card" onclick="selectDog('${esc(d.name)}')">
+    h += `<div class="dog-card" style="background:${color}" onclick="selectDog('${esc(d.name)}')">
       <div class="dog-avatar">${dogAvatarHTML(d.name)}</div>
       <div class="dog-info">
         <div class="dog-name">${esc(d.name)}</div>
@@ -2390,9 +2402,9 @@ function renderLog(){
   const today = todayCentral();
   if(S.date !== today){
     h += `<div class="warn"><b>This header is dated ${esc(S.date)}. Today is ${today}.</b><br>
-      <div style="margin-top:8px"><button class="chip" style="background:var(--alert)" onclick="useToday()">USE ${today}</button>
-      <button class="chip" onclick="newOuting()">START FRESH</button>
-      <button class="chip" style="background:var(--accent)" onclick="haptic();this.parentElement.parentElement.remove()">KEEP ${esc(S.date)}</button></div></div>`;
+      <div style="margin-top:8px"><button class="chip" style="background:var(--alert);color:#fff;border-color:transparent" onclick="useToday()">USE ${today}</button>
+      <button class="chip" style="background:var(--card);color:var(--ink);border-color:var(--line)" onclick="newOuting()">START FRESH</button>
+      <button class="chip" style="background:var(--accent);color:#fff;border-color:transparent" onclick="haptic();this.parentElement.parentElement.remove()">KEEP ${esc(S.date)}</button></div></div>`;
   }
 
   h += `<div class="fs"><h3>1 · BEFORE — outing context</h3>
