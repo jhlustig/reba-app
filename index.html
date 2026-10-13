@@ -2758,8 +2758,37 @@ recomputeState();
         }
       }
     }
-    if (toMerge.length) {
-      await idbPutAll(db, toMerge);
+    /* Also rebuild outings store from Firestore so history + dot plot work after reinstall */
+    const existingOutings = await idbGetOutings(db);
+    const seenOutings = new Set(existingOutings.map(o => o.date + '|' + (o.tod || '')));
+    let mergedOutings = false;
+    for (const d of docs) {
+      if (!d.outing || !d.cards) continue;
+      const o = d.outing;
+      const key = o.date + '|' + (o.tod || '');
+      if (!seenOutings.has(key)) {
+        seenOutings.add(key);
+        await idbPutOuting(db, {
+          date: o.date, tod: o.tod,
+          location: o.location || null,
+          temp_f: o.temp_f || null,
+          length_min: o.length_min || null,
+          water_temp_f: o.water_temp_f || null,
+          cards: d.cards.map(cs => ({
+            card: cs.card, assist: cs.assist || 'none',
+            rung: cs.rung != null ? cs.rung : null,
+            dog_state: cs.dog_state || null,
+            observed: cs.observed || null,
+            checks: (cs.checks || []).map(ck => ({
+              id: ck.id, hits: ck.hits, of: ck.of, counts: ck.counts !== false
+            })),
+          })),
+        });
+        mergedOutings = true;
+      }
+    }
+    if (toMerge.length || mergedOutings) {
+      if (toMerge.length) await idbPutAll(db, toMerge);
       await recomputeState();
     }
     /* Also sync events from Firestore */
