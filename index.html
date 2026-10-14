@@ -926,20 +926,42 @@ const DOG_PHOTO_KEY = 'reba.dogPhotos.v1';
 function getDogs() {
   try { return JSON.parse(localStorage.getItem(DOG_KEY)) || []; } catch(e) { return []; }
 }
-function saveDogs(dogs) { localStorage.setItem(DOG_KEY, JSON.stringify(dogs)); }
+function saveDogs(dogs) {
+  localStorage.setItem(DOG_KEY, JSON.stringify(dogs));
+  /* persist to Firestore so dog list survives reinstall */
+  fsWrite('dog_list', { handler: getHandler(), dogs: dogs })
+    .catch(e => console.warn('Dog list cloud save failed:', e));
+}
 function getActiveDog() {
   const name = localStorage.getItem(ACTIVE_DOG_KEY);
   const dogs = getDogs();
   if (name && dogs.find(d => d.name === name)) return name;
   if (dogs.length) { localStorage.setItem(ACTIVE_DOG_KEY, dogs[0].name); return dogs[0].name; }
   const seed = [{ name: 'Reba', breed: 'Golden Retriever' }];
-  saveDogs(seed);
+  localStorage.setItem(DOG_KEY, JSON.stringify(seed)); /* don't call saveDogs to avoid Firestore write of seed data */
   localStorage.setItem(ACTIVE_DOG_KEY, 'Reba');
   return 'Reba';
 }
 function setActiveDog(name) { localStorage.setItem(ACTIVE_DOG_KEY, name); }
 function getHandler() { return localStorage.getItem(HANDLER_KEY) || 'jason'; }
 function setHandler(name) { localStorage.setItem(HANDLER_KEY, name); }
+/* restore dog list from Firestore if localStorage only has the default seed */
+function syncDogList() {
+  const existing = getDogs();
+  if (existing.length > 1) return; /* already have custom dogs locally */
+  fsReadAll('dog_list').then(docs => {
+    if (!docs.length) return;
+    /* find the doc with the most dogs (latest save) */
+    let best = null;
+    for (const d of docs) {
+      if (d.dogs && Array.isArray(d.dogs) && (!best || d.dogs.length > best.dogs.length)) best = d;
+    }
+    if (best && best.dogs.length > existing.length) {
+      localStorage.setItem(DOG_KEY, JSON.stringify(best.dogs));
+      renderHome();
+    }
+  }).catch(e => console.warn('Dog list sync skipped:', e));
+}
 
 /* ── Dog photos (localStorage + Firestore for persistence across reinstalls) ── */
 function getDogPhotos() {
@@ -2724,6 +2746,7 @@ function render(){ renderWeek(); renderCards(); renderTracks(); renderLog(); }
 
 /* ── Boot: show home screen, then load data in background ──────────────── */
 renderHome();
+syncDogList();
 syncDogPhotos();
 recomputeState();
 
