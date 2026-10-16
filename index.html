@@ -34,7 +34,7 @@
   .home-subtitle{font-size:13px; font-weight:600; letter-spacing:.08em; color:rgba(255,255,255,.7); margin-top:2px;}
   .home-build{font-size:11px; color:rgba(255,255,255,.4); margin-top:6px;}
   .home-dogs{display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 16px 40px;}
-  .dog-card{display:flex; flex-direction:column; align-items:center; justify-content:center;
+  .dog-card{display:flex; flex-direction:column; align-items:center; justify-content:start;
             gap:8px; border-radius:16px; padding:16px 12px 14px;
             box-shadow:0 2px 8px rgba(0,0,0,.3); cursor:pointer; color:#fff;
             transition:transform .1s ease;}
@@ -1578,7 +1578,7 @@ function renderTracks(){
         ${badge(st)}</div>`;
       /* A stand-down outranks the graph on screen, because it is the more
          recent fact and it is the one that says do not run this today. */
-      if(cs.stood_down){
+      if(cs.stood_down && !cs.stood_down.lifted){
         h += `<div class="sd"><b>STOOD DOWN ${esc(cs.stood_down.date)}</b> — ${esc(cs.stood_down.why)}
           <br><b>Lifts when:</b> ${esc(cs.stood_down.lifts_when)}
           ${cs.stood_down.criterion_set ? (cs.stood_down.progress||[]).map(g =>
@@ -1604,10 +1604,10 @@ function renderTracks(){
           else if(k.status==='pre_gate')
             right = `ran ${k.best_hits}/${k.of} \u00b7 banks nothing yet`;
           /* NOT RECORDED renders as words, never as the target number. Printed
-             bare, "3/3" reads as a score she made rather than a check nobody
+             bare, "3/3" reads as a score the dog made rather than a check nobody
              ever ran, and absence is not evidence. */
-          else right = `NOT RECORDED \u00b7 wants ${k.need_hits}/${k.of}`;
-          const dim = (k.status==='not_recorded') ? ' style="color:var(--alert)"' : '';
+          else right = `not started \u00b7 ${k.need_hits}/${k.of}`;
+          const dim = (k.status==='not_recorded') ? ' style="color:var(--muted)"' : '';
           h += `<div class="ckmini"><span class="id">${k.id}</span>
             <span style="flex:1">${esc(k.label)}</span><span${dim}>${right}</span></div>`;
         }
