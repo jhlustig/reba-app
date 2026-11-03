@@ -2678,7 +2678,7 @@ function renderLog(){
     <div><label class="f">Length <span class="hint">min</span></label><input type="number" id="f_len" value="${S.length_min}"></div></div>
     <label class="f">AM or PM <span class="req">*</span> <span class="hint">not pre-filled on purpose — a wrong default is worse than a blank</span></label>${chipset(TOD, S.tod, 'setTOD')}
     <label class="f">Location</label>
-    <div style="margin:6px 0 4px"><button class="chip" style="background:var(--ink);color:#fff;border-color:var(--ink)" onclick="detectLocation()">📍 WHERE AM I?</button> <span id="geoResult" style="font-size:13px"></span></div>
+    <div style="margin:6px 0 4px"><button class="chip" style="background:var(--accent);color:#fff;border-color:transparent" onclick="detectLocation()">📍 WHERE AM I?</button> <span id="geoResult" style="font-size:13px"></span></div>
     <div id="wxInfo" style="font-size:13px;font-weight:600;margin:0 0 6px;min-height:18px"></div>
     ${chipset(LOCS(), S.location, 'setLoc')}
     ${S.location==='Other'?`<input type="text" id="f_loco" placeholder="where" value="${esc(S.locOther)}">`:''}
