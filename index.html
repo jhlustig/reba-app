@@ -305,7 +305,9 @@
   .hist-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .hist-tile{background:#2C2C28; border:0; border-radius:14px; padding:14px 8px;
              text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.3); cursor:pointer;
-             font-family:inherit; color:var(--ink); transition:transform .1s ease;}
+             font-family:inherit; color:var(--ink); transition:transform .1s ease;
+             position:relative; overflow:hidden;}
+  .hist-stripe{position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:14px 0 0 14px;}
   .hist-tile:active{transform:scale(.95);}
   .hist-tile-day{font-size:12px; color:var(--muted); font-weight:600; letter-spacing:.06em;}
   .hist-tile-date{font-size:17px; font-weight:800; margin:2px 0;}
@@ -2411,13 +2413,24 @@ function renderHistory(){
     } else {
       const o = item.data;
       const ncards = o.cards ? o.cards.length : 0;
-      /* Color by first card's track */
-      var hcolor = '#2C2C28';
+      /* Collect unique track colors for split stripe */
+      var stripeColors = [];
       if(o.cards && o.cards.length){
-        var fc = DECK.cards.find(function(x){ return x.code === o.cards[0].card; });
-        if(fc) hcolor = fc.color;
+        var seen = {};
+        for(var ci=0; ci<o.cards.length; ci++){
+          var fc = DECK.cards.find(function(x){ return x.code === o.cards[ci].card; });
+          if(fc && !seen[fc.color]){ seen[fc.color]=1; stripeColors.push(fc.color); }
+        }
       }
-      h += `<button class="hist-tile" style="background:${hcolor}" onclick="haptic();state.histDetail=${i};render()">
+      var stripeCSS = stripeColors.length > 1
+        ? 'background:linear-gradient(to bottom,' + stripeColors.map(function(c,idx){
+            var pct1 = Math.round(idx/stripeColors.length*100);
+            var pct2 = Math.round((idx+1)/stripeColors.length*100);
+            return c+' '+pct1+'%,'+c+' '+pct2+'%';
+          }).join(',') + ')'
+        : 'background:' + (stripeColors[0] || 'var(--line)');
+      h += `<button class="hist-tile" onclick="haptic();state.histDetail=${i};render()">
+        <div class="hist-stripe" style="${stripeCSS}"></div>
         <div class="hist-tile-day">${esc(dayName)}</div>
         <div class="hist-tile-date">${esc(monthDay)}</div>
         <div class="hist-tile-tod">${esc(o.tod || '')}</div>
