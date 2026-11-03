@@ -88,8 +88,8 @@
   .card-step-end{width:50px;}
   main{padding:12px 12px 90px;}
   .chips{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0;}
-  .chip{padding:11px 16px; border:1.5px solid var(--line); border-radius:22px; background:var(--card);
-        font-size:14px; font-weight:600; color:var(--muted); min-height:44px;}
+  .chip{padding:11px 16px; border:1.5px solid rgba(200,196,186,.35); border-radius:22px; background:rgba(46,46,42,.8);
+        font-size:14px; font-weight:600; color:var(--ink); min-height:44px;}
   .chip.on{color:#fff; border-color:transparent;}
   .cardrow{display:flex; align-items:center; gap:12px; background:var(--card);
            border-radius:14px; padding:14px 16px; margin-bottom:8px;
@@ -302,7 +302,7 @@
   .copy.confirm-warn{background:#D4440A; color:#fff; border-color:#D4440A;}
   /* LOG toggle removed — Log and History are separate hub tiles now */
   /* session history — grid of tiles */
-  .hist-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;}
+  .hist-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .hist-tile{background:#2C2C28; border:0; border-radius:14px; padding:14px 8px;
              text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.3); cursor:pointer;
              font-family:inherit; color:var(--ink); transition:transform .1s ease;}
@@ -1546,6 +1546,35 @@ function renderBodyText(text) {
   }).join('<br><br>');
 }
 
+/* ------------------------------ SHARED CARD TILE -------------------------
+   One function, used everywhere a card appears: Cards, Tracks drill-down,
+   Week, History detail. 2-col colored tile with code, title, type, badge.
+   Options:
+     onclick  — JS string for the click handler
+     sub      — optional second-line text (check info, equipment, etc.)
+     current  — true to add the green accent border
+   ----------------------------------------------------------------------- */
+function cardTile(c, opts) {
+  opts = opts || {};
+  var ST = DECK.state;
+  var cs = ST && ST.cards ? ST.cards[c.code] : null;
+  var st = cs ? ((cs.status === 'banked' && cs.checks && cs.checks.some(function(k){ return k.status === 'banked_assertion'; }))
+           ? 'banked_assertion' : cs.status) : 'no_checks';
+  var lock = cs && cs.status === 'locked';
+  var bg = c.type === 'gate' ? 'var(--alert)' : c.color;
+  var opacity = lock ? ';opacity:.4' : '';
+  var typeLabel = c.type === 'stage' ? '' : (c.type === 'gate' ? 'GATE' : (c.type === 'reference' ? 'REF' : ''));
+  var click = opts.onclick || "haptic();state.prevTab=null;state.openCard='" + c.code + "';render()";
+  return '<button class="trk-card-tile' + (opts.current ? ' trk-current' : '') + '" style="background:' + bg + opacity + '"'
+    + ' onclick="' + click + '">'
+    + '<div class="trk-card-code">' + c.code + '</div>'
+    + '<div class="trk-card-title">' + esc(c.title) + '</div>'
+    + (typeLabel ? '<div class="trk-card-type">' + typeLabel + '</div>' : '')
+    + (opts.sub ? '<div class="trk-card-type">' + esc(opts.sub) + '</div>' : '')
+    + '<div class="trk-card-badge">' + badge(st) + '</div>'
+    + '</button>';
+}
+
 /* ------------------------------ CARDS TAB ------------------------------ */
 function renderCards(){
   const v = document.getElementById('vCards');
@@ -1567,13 +1596,12 @@ function renderCards(){
   for(const t of TRACKS)
     h += `<button class="chip ${state.trackFilter===t.tag?'on':''}" style="${state.trackFilter===t.tag?'background:'+t.color:''}" onclick="haptic();state.trackFilter='${t.tag}';render()">${t.tag}</button>`;
   h += '</div>';
+  h += '<div class="trk-card-tiles">';
   for(const c of DECK.cards){
     if(state.trackFilter && c.track!==state.trackFilter) continue;
-    const ty = c.type==='stage'?'':(c.type==='gate'?'GATE':(c.type==='reference'?'REF':'TRACK'));
-    h += `<div class="cardrow" onclick="state.prevTab=null;state.openCard='${c.code}';render()">
-      <div class="stripe" style="background:${c.type==='gate'?'var(--alert)':c.color}"></div>
-      <div class="code">${c.code}</div><div class="ti">${esc(c.title)}</div><div class="ty">${ty}</div></div>`;
+    h += cardTile(c);
   }
+  h += '</div>';
   v.innerHTML = h;
 }
 function cardDetail(c){
@@ -1770,22 +1798,11 @@ function renderTracks(){
       return (a.n || 0) - (b.n || 0);
     });
     for (const c of trackCards) {
-      const cs = ST.cards[c.code];
-      const st = cs ? ((cs.status === 'banked' && cs.checks.some(function(k){ return k.status === 'banked_assertion'; }))
-                 ? 'banked_assertion' : cs.status) : 'no_checks';
-      const lock = cs && cs.status === 'locked';
       const isCurrent = c.code === (p.current || '');
-      var bg = t.color;
-      var opacity = lock ? ';opacity:.4' : '';
-      /* Type label */
-      var typeLabel = c.type === 'stage' ? '' : (c.type === 'gate' ? 'GATE' : (c.type === 'reference' ? 'REF' : ''));
-      h += '<button class="trk-card-tile' + (isCurrent ? ' trk-current' : '') + '" style="background:' + bg + opacity + '"'
-        + ' onclick="haptic();state.prevTab=\'tracks\';state.openCard=\'' + c.code + '\';tab(\'cards\')">'
-        + '<div class="trk-card-code">' + c.code + '</div>'
-        + '<div class="trk-card-title">' + esc(c.title) + '</div>'
-        + (typeLabel ? '<div class="trk-card-type">' + typeLabel + '</div>' : '')
-        + '<div class="trk-card-badge">' + badge(st) + '</div>'
-        + '</button>';
+      h += cardTile(c, {
+        current: isCurrent,
+        onclick: "haptic();state.prevTab='tracks';state.openCard='" + c.code + "';tab('cards')"
+      });
     }
     h += '</div>';
     v.innerHTML = h;
@@ -1992,15 +2009,14 @@ function suggest(openCards, n){
 
 function slotLine(c, why){
   const k = activeCheck(c.code);
-  const eq = [];
-  if(c.equipment && c.equipment.length) eq.push(c.equipment.join(' \u00b7 '));
-  if(c.session_cap) eq.push('CAP ' + (c.session_cap.note || (c.session_cap.reps + ' reps max')));
-  return `<div class="ran" onclick="state.openCard='${c.code}';tab('cards')">
-      <div class="cd">${c.code}</div>
-      <div style="flex:1">${esc(c.title)}
-        ${k ? `<div class="eq">${esc(k.id)} \u00b7 ${esc(k.label)} \u00b7 wants ${k.need_hits}/${k.of}${k.need_sessions>1?' \u00d7'+k.need_sessions+'s':''}</div>` : ''}
-        ${eq.length ? `<div class="eq">${esc(eq.join(' \u00b7 '))}</div>` : ''}
-        ${why ? `<div class="eq">${esc(why)}</div>` : ''}</div></div>`;
+  const parts = [];
+  if(k) parts.push(k.id + ' \u00b7 ' + k.label + ' \u00b7 wants ' + k.need_hits + '/' + k.of + (k.need_sessions>1?' \u00d7'+k.need_sessions+'s':''));
+  if(c.equipment && c.equipment.length) parts.push(c.equipment.join(' \u00b7 '));
+  if(why) parts.push(why);
+  return cardTile(c, {
+    onclick: "haptic();state.openCard='" + c.code + "';tab('cards')",
+    sub: parts.join(' \u00b7 ')
+  });
 }
 
 function renderWeek(){
@@ -2073,14 +2089,18 @@ function renderWeek(){
     }
 
     /* PAST AND TODAY: what actually ran. The record, never a plan. */
+    if(rows.length) h += '<div class="trk-card-tiles">';
     for(const r of rows){
       const c = DECK.cards.find(x => x.code===r.code);
-      h += `<div class="ran" onclick="state.openCard='${r.code}';tab('cards')">
-        <div class="cd">${esc(r.code)}</div>
-        <div style="flex:1">${esc(c ? c.title : '')}
-          <div class="eq">${esc(r.check)}${r.counts?'':' \u00b7 banks nothing'}</div></div>
-        <div class="sc ${r.counts?'':'no'}">${r.hits}/${r.of}</div></div>`;
+      if(c){
+        var rsub = r.check + ' ' + r.hits + '/' + r.of + (r.counts ? '' : ' \u00b7 banks nothing');
+        h += cardTile(c, {
+          onclick: "haptic();state.openCard='" + r.code + "';tab('cards')",
+          sub: rsub
+        });
+      }
     }
+    if(rows.length) h += '</div>';
 
     /* TODAY: screen 1. What is open, computed, with equipment. */
     if(isToday){
@@ -2092,11 +2112,15 @@ function renderWeek(){
         const sug = suggest(open, 2);
         if(sug.length){
           h += `<div class="slot"><span class="lb">SUGGESTED</span></div>`;
+          h += '<div class="trk-card-tiles">';
           for(const s of sug) h += slotLine(s.card, s.why);
+          h += '</div>';
           const rest = open.filter(o => !sug.some(s => s.card.code === o.card.code));
           if(rest.length){
             h += `<div class="slot"><span class="lb">ALSO OPEN</span></div>`;
+            h += '<div class="trk-card-tiles">';
             for(const o of rest) h += slotLine(o.card, o.why);
+            h += '</div>';
           }
         } else {
           h += `<div class="empty">Nothing open. Every track is banked, locked, or stood down.</div>`;
@@ -2105,8 +2129,9 @@ function renderWeek(){
       for(const sl of ['am','pm']){
         const codes = Array.isArray(p[sl]) ? p[sl] : (p[sl] ? [p[sl]] : []);
         if(codes.length){ h += `<div class="slot"><span class="lb">${sl.toUpperCase()} \u2014 YOU PLANNED</span>`;
+          h += '<div class="trk-card-tiles">';
           for(const cd of codes){ const c = DECK.cards.find(x => x.code===cd); if(c) h += slotLine(c,''); }
-          h += `</div>`; }
+          h += '</div></div>'; }
       }
     } else {
       /* FUTURE / PAST: only what YOU put there. */
@@ -2347,27 +2372,23 @@ function renderHistory(){
       <div class="hist-detail-date">${esc(o.date)}</div>
       <div class="hist-detail-meta">${esc(meta)}</div></div>`;
     if (o.cards) {
+      h += '<div class="trk-card-tiles">';
       for(const c of o.cards){
         const dc = DECK.cards.find(x=>x.code===c.card);
-        h += `<div class="hist-card">
-          <div class="hist-card-head" style="border-left:4px solid ${dc?dc.color:'var(--ink)'}">
-            <span class="hist-card-code">${esc(c.card)}</span>
-            <span class="hist-card-title">${dc ? esc(dc.title) : ''}</span></div>`;
-        if(c.dog_state) h += `<div class="hist-card-meta">Dog: ${esc(c.dog_state)}${c.assist && c.assist!=='none' ? ' · Assist: '+esc(c.assist) : ''}</div>`;
-        for(const k of (c.checks||[])){
-          const spec = dc ? dc.checks.find(s=>s.id===k.id) : null;
-          const threshold = spec ? spec.hits : null;
-          const met = threshold !== null && k.hits >= threshold;
-          h += `<div class="hist-check">
-            <span class="sh-score ${met?'sh-pass':'sh-fail'}">${k.hits}/${k.of}</span>
-            <span class="hist-check-id">${esc(k.id)}</span>
-            ${spec?`<span class="hist-check-label">${esc(spec.label)}</span>`:''}
-            ${!k.counts?'<span class="sh-meta">(no-count)</span>':''}
-          </div>`;
+        if(dc){
+          var csub = (c.checks||[]).map(function(k){
+            var spec = dc ? dc.checks.find(function(s){return s.id===k.id;}) : null;
+            var threshold = spec ? spec.hits : null;
+            var met = threshold !== null && k.hits >= threshold;
+            return k.id + ' ' + k.hits + '/' + k.of + (met?' \u2713':'') + (k.counts?'':' (nc)');
+          }).join(' \u00b7 ');
+          h += cardTile(dc, {
+            onclick: "haptic();state.openCard='" + c.card + "';tab('cards')",
+            sub: csub
+          });
         }
-        if(c.observed) h += `<div class="hist-observed">${esc(c.observed)}</div>`;
-        h += `</div>`;
       }
+      h += '</div>';
     }
     return h;
   }
@@ -2381,17 +2402,22 @@ function renderHistory(){
     const monthDay = d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
     if(item.kind === 'event'){
       const ev = item.data;
-      const nex = (ev.exercises||[]).length;
-      h += `<button class="hist-tile" style="border-left:3px solid rgba(140,100,42,.85)" onclick="haptic();state.histDetail=${i};render()">
+      h += `<button class="hist-tile" style="background:rgba(140,100,42,.65)" onclick="haptic();state.histDetail=${i};render()">
         <div class="hist-tile-day">${esc(dayName)}</div>
         <div class="hist-tile-date">${esc(monthDay)}</div>
         <div class="hist-tile-tod">${esc(ev.tod || '')}</div>
-        <div class="hist-tile-cards" style="color:rgba(140,100,42,.85)">${esc(ev.event_type)}</div>
+        <div class="hist-tile-cards">${esc(ev.event_type)}</div>
       </button>`;
     } else {
       const o = item.data;
       const ncards = o.cards ? o.cards.length : 0;
-      h += `<button class="hist-tile" onclick="haptic();state.histDetail=${i};render()">
+      /* Color by first card's track */
+      var hcolor = '#2C2C28';
+      if(o.cards && o.cards.length){
+        var fc = DECK.cards.find(function(x){ return x.code === o.cards[0].card; });
+        if(fc) hcolor = fc.color;
+      }
+      h += `<button class="hist-tile" style="background:${hcolor}" onclick="haptic();state.histDetail=${i};render()">
         <div class="hist-tile-day">${esc(dayName)}</div>
         <div class="hist-tile-date">${esc(monthDay)}</div>
         <div class="hist-tile-tod">${esc(o.tod || '')}</div>
@@ -2671,9 +2697,9 @@ function renderLog(){
   for(const t of TRACKS){
     const tc = logCards.filter(c=>c.track===t.tag);
     if(!tc.length) continue;
-    h += `<div class="track-group-hdr" style="color:${t.color}">${t.tag}</div><div class="chips">` +
+    h += `<div class="track-group-hdr" style="color:${t.color}">${t.tag} · ${esc(t.name)}</div><div class="chips">` +
       tc.map(c=>
-        `<button class="chip ${S.cards[c.code]?'on':''}" style="${S.cards[c.code]?'background:'+c.color:''}" onclick="tCard('${c.code}')">${c.code}</button>`).join('') +
+        `<button class="chip ${S.cards[c.code]?'on':''}" style="${S.cards[c.code]?'background:'+c.color+';color:#fff;border-color:transparent':'border-color:'+c.color+';color:#fff'}" onclick="tCard('${c.code}')">${c.code}</button>`).join('') +
       `</div>`;
   }
 
@@ -2965,11 +2991,11 @@ window.confirmClear = confirmClear;
    ----------------------------------------------------------------------- */
 
 const LEARN_CATEGORIES = [
-  { key: 'program',      label: 'PROGRAM' },
-  { key: 'theory',       label: 'THEORY' },
-  { key: 'foundations',   label: 'FOUNDATIONS' },
-  { key: 'field_craft',  label: 'FIELD CRAFT' },
-  { key: 'equipment',    label: 'EQUIPMENT' },
+  { key: 'program',      label: 'PROGRAM',     color: 'rgba(47,74,50,.75)' },
+  { key: 'theory',       label: 'THEORY',      color: 'rgba(59,66,110,.75)' },
+  { key: 'foundations',   label: 'FOUNDATIONS', color: 'rgba(122,82,64,.75)' },
+  { key: 'field_craft',  label: 'FIELD CRAFT', color: 'rgba(63,90,107,.75)' },
+  { key: 'equipment',    label: 'EQUIPMENT',   color: 'rgba(140,100,42,.75)' },
 ];
 
 /* ── Custom markdown renderer (~15 lines, no library) ──────────────────── */
@@ -3101,12 +3127,14 @@ function renderLearn() {
     const items = grouped[cat.key];
     if (!items || !items.length) continue;
     h += '<div class="learn-group-hdr">' + cat.label + '</div>';
+    h += '<div class="trk-card-tiles">';
     for (const art of items) {
-      h += '<div class="learn-row" onclick="haptic();state.openArticle=\'' + esc(art.key) + '\';render()">'
-        + '<div class="learn-row-title">' + esc(art.title) + '</div>'
-        + '<div class="learn-row-meta">' + art.reading_min + ' min read</div>'
-        + '</div>';
+      h += '<button class="trk-card-tile" style="background:' + cat.color + '" onclick="haptic();state.openArticle=\'' + esc(art.key) + '\';render()">'
+        + '<div class="trk-card-title">' + esc(art.title) + '</div>'
+        + '<div class="trk-card-type">' + art.reading_min + ' min read</div>'
+        + '</button>';
     }
+    h += '</div>';
   }
 
   v.innerHTML = h;
